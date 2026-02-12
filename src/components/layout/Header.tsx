@@ -31,18 +31,18 @@ export default function Header() {
       </div>
 
       {/* Main navigation */}
-      <nav className="py-5">
+      <nav className="py-1">
         <Container>
           <div className="flex justify-between items-center">
             {/* Logo */}
-            <Link href="/" className="flex items-center py-2">
+            <Link href="/" className="flex items-center -my-20">
               <Image
-                src="/images/Logo/logobygoriginal.png"
+                src="/images/Logo/logobyg1.png"
                 alt="BYG Rodamientos"
-                width={240}
-                height={270}
+                width={500}
+                height={560}
                 priority
-                className="h-24 w-auto object-contain"
+                className="h-56 w-auto object-contain"
               />
             </Link>
 
