@@ -4,7 +4,6 @@ export type CategoryType =
   | 'transmision'
   | 'herramientas'
   | 'sellos'
-  | 'iveco'
   | 'automotriz';
 
 export interface ProductImage {

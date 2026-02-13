@@ -1,13 +1,14 @@
 import { Product } from '@/types/product';
 import { rodamientosProducts } from './rodamientos';
 import { retenesProducts } from './retenes';
-
-// Por ahora solo importamos rodamientos y retenes
-// Los demás productos se pueden agregar posteriormente
+import { transmisionProducts } from './transmision';
+import { herramientasProducts } from './herramientas';
 
 export const allProducts: Product[] = [
   ...rodamientosProducts,
   ...retenesProducts,
+  ...transmisionProducts,
+  ...herramientasProducts,
 ];
 
 export function getProductBySlug(slug: string): Product | undefined {

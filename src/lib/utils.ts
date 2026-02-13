@@ -8,7 +8,7 @@ export function formatPhoneNumber(phone: string): string {
 }
 
 export function getWhatsAppLink(message?: string): string {
-  const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5492996726610';
+  const phone = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5492994019699';
   const defaultMessage = 'Hola, estoy interesado en sus productos. Me gustaría recibir más información.';
   const text = encodeURIComponent(message || defaultMessage);
   return `https://wa.me/${phone}?text=${text}`;

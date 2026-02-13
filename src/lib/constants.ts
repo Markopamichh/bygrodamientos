@@ -5,8 +5,8 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:30
 export const CONTACT = {
   phone: '0299-4462546',
   phone2: '0299-4462547',
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5492996726610',
-  email: 'ventas@bygrodamientos.com',
+  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5492994019699',
+  email: 'bygrodamientos@gmail.com',
   address: 'Collon Cura 240, Neuquén, Argentina',
 };
 

@@ -58,10 +58,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <Container className="py-16">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-secondary mb-4">
+          <p className="text-sm font-medium text-primary tracking-widest uppercase mb-3">{category.name}</p>
+          <h1 className="font-display text-4xl md:text-5xl font-bold text-secondary mb-4">
             {category.name}
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl">
+          <p className="text-lg text-stone-500 max-w-3xl">
             {category.longDescription}
           </p>
         </div>
@@ -69,12 +70,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         {/* Subcategories */}
         {category.subcategories.length > 0 && (
           <div className="mb-12">
-            <h2 className="text-xl font-bold text-secondary mb-4">Subcategorías</h2>
+            <h2 className="font-display text-xl font-bold text-secondary mb-4">Subcategorías</h2>
             <div className="flex flex-wrap gap-3">
               {category.subcategories.map((subcat) => (
                 <span
                   key={subcat.id}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-full text-sm hover:bg-primary hover:text-white transition cursor-pointer"
+                  className="px-4 py-2 bg-stone-50 text-stone-600 rounded-xl text-sm border border-stone-200 hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 ease-out-expo cursor-pointer"
                 >
                   {subcat.name}
                 </span>
@@ -85,7 +86,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
         {/* Products Grid */}
         <div>
-          <h2 className="text-2xl font-bold text-secondary mb-6">
+          <h2 className="font-display text-2xl font-bold text-secondary mb-6">
             Productos Disponibles
           </h2>
           <ProductGrid products={products} />
@@ -93,17 +94,17 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
         {/* CTA */}
         {products.length > 0 && (
-          <div className="mt-16 bg-gray-50 rounded-lg p-8 text-center">
-            <h3 className="text-2xl font-bold text-secondary mb-3">
+          <div className="mt-16 bg-stone-50 border border-stone-200 rounded-2xl p-8 md:p-10 text-center">
+            <h3 className="font-display text-2xl font-bold text-secondary mb-3">
               ¿No encuentra lo que busca?
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-stone-500 mb-6 max-w-xl mx-auto">
               Contamos con capacidad de importación para productos específicos.
               Contáctenos y le ayudaremos a encontrar la solución perfecta.
             </p>
             <a
               href="/contacto"
-              className="inline-block bg-primary text-white px-8 py-3 rounded-md hover:bg-primary-dark transition font-medium"
+              className="inline-block bg-primary text-white px-8 py-3.5 rounded-xl hover:bg-primary-dark transition-all duration-300 ease-out-expo font-medium hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5"
             >
               Contactar
             </a>

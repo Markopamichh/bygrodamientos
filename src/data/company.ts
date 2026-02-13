@@ -6,11 +6,11 @@ export const companyInfo: ContactInfo = {
   province: 'Neuquén',
   phone: '0299-4462546',
   phone2: '0299-4462547',
-  whatsapp: '5492996726610',
-  email: 'ventas@bygrodamientos.com',
+  whatsapp: '5492994019699',
+  email: 'bygrodamientos@gmail.com',
   hours: {
-    weekdays: 'Lunes a Viernes: 8:00 - 18:00',
-    saturday: 'Sábados: 9:00 - 13:00',
+    weekdays: 'Lunes a Viernes: 8:30 - 17:00',
+    saturday: 'Sábados: Cerrado',
     sunday: 'Domingos: Cerrado',
   },
   coordinates: {

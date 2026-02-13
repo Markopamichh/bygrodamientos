@@ -11,7 +11,7 @@ export const rodamientosProducts: Product[] = [
     longDescription: 'Los rodamientos rígidos de bolas son los más versátiles y ampliamente utilizados. Diseñados para soportar cargas radiales y axiales moderadas en ambas direcciones. Ideales para aplicaciones de alta velocidad con mínima fricción y bajo nivel de ruido. Disponibles en diversas configuraciones: abiertos, con protecciones metálicas (Z, ZZ) o con sellos de goma (RS, 2RS).',
     images: [
       {
-        url: '/images/products/rodamientorigidodebolas.webp',
+        url: '/images/products/rodamientorigidodebolas (1).webp',
         alt: 'Rodamiento Rígido de Bolas 6200 Series',
       },
     ],
@@ -59,7 +59,7 @@ export const rodamientosProducts: Product[] = [
     longDescription: 'Los rodamientos de bolas a rótula tienen dos hileras de bolas que funcionan sobre una pista esférica común en el aro exterior, lo que les permite ser insensibles a las desalineaciones del eje respecto al soporte. Ideales para aplicaciones donde es difícil garantizar un perfecto alineamiento o donde existen deflexiones del eje.',
     images: [
       {
-        url: '/images/products/rodamiento-de-bolas-a-rotula.webp',
+        url: '/images/products/rodamiento-de-bolas-a-rotula (1).webp',
         alt: 'Rodamiento de Bolas a Rótula',
       },
     ],
@@ -106,7 +106,7 @@ export const rodamientosProducts: Product[] = [
     longDescription: 'Los rodamientos de contacto angular tienen pistas en los aros interior y exterior desplazadas entre sí en la dirección del eje del rodamiento. Esto permite que soporten cargas combinadas (radiales y axiales simultáneamente). El ángulo de contacto determina la capacidad de carga: mayor ángulo = mayor capacidad axial.',
     images: [
       {
-        url: '/images/products/contacto-angular.webp',
+        url: '/images/products/contacto-angular (1).webp',
         alt: 'Rodamiento de Contacto Angular',
       },
     ],
@@ -154,7 +154,7 @@ export const rodamientosProducts: Product[] = [
     longDescription: 'Los rodamientos de rodillos cilíndricos tienen elementos rodantes cilíndricos que están en contacto lineal con las pistas. Esto les proporciona una alta capacidad de carga radial y permiten altas velocidades. Son separables, lo que facilita el montaje y desmontaje. Disponibles en diferentes diseños según la configuración de pestañas.',
     images: [
       {
-        url: '/images/products/contacto-cilindrico.webp',
+        url: '/images/products/contacto-cilindrico (1).webp',
         alt: 'Rodamiento de Rodillos Cilíndricos',
       },
     ],
@@ -199,7 +199,12 @@ export const rodamientosProducts: Product[] = [
     subcategory: 'rodillos-rotula',
     description: 'Rodamientos de máxima carga para aplicaciones extremas con desalineación',
     longDescription: 'Los rodamientos de rodillos a rótula tienen dos hileras de rodillos simétricos que trabajan sobre una pista esférica común. Combinan una altísima capacidad de carga con la capacidad de compensar desalineaciones. Son la solución para las aplicaciones más exigentes de la industria pesada.',
-    images: [],
+    images: [
+      {
+        url: '/images/products/Rodamientos-Axiales-de-Rodillos-a-Rótula (1).webp',
+        alt: 'Rodamiento de Rodillos a Rótula',
+      },
+    ],
     specifications: {
       'Tipo': 'Rodillos a rótula',
       'Serie': '222, 223, 230, 231',
@@ -243,7 +248,7 @@ export const rodamientosProducts: Product[] = [
     longDescription: 'Los rodamientos axiales de bolas están diseñados para soportar exclusivamente cargas axiales en una dirección. Constan de dos aros (superior e inferior) y una jaula con bolas. Son ideales para aplicaciones donde la carga principal es axial y la velocidad es moderada.',
     images: [
       {
-        url: '/images/products/axial-a-bola.webp',
+        url: '/images/products/Axial a bola (2).webp',
         alt: 'Rodamiento Axial de Bolas',
       },
     ],
@@ -290,7 +295,7 @@ export const rodamientosProducts: Product[] = [
     longDescription: 'Los rodamientos de agujas utilizan elementos rodantes cilíndricos muy finos y largos (agujas). Esta configuración permite una alta capacidad de carga en un diseño muy compacto con mínima sección radial. Ideales para aplicaciones donde el espacio es limitado pero se requiere alta capacidad de carga.',
     images: [
       {
-        url: '/images/products/agujas.webp',
+        url: '/images/products/agujas1.webp',
         alt: 'Rodamiento de Agujas',
       },
     ],
@@ -335,7 +340,12 @@ export const rodamientosProducts: Product[] = [
     subcategory: 'rigidos-bolas',
     description: 'Rodamientos especiales para aplicaciones automotrices',
     longDescription: 'Los rodamientos de cubo de rueda son unidades completas diseñadas específicamente para aplicaciones automotrices. Integran rodamientos de bolas de contacto angular o rodillos cónicos en una configuración sellada y pre-lubricada. Ofrecen máxima confiabilidad y facilidad de montaje.',
-    images: [],
+    images: [
+      {
+        url: '/images/products/cubo de rueda.webp',
+        alt: 'Rodamiento de Cubo de Rueda',
+      },
+    ],
     specifications: {
       'Tipo': 'Cubo de rueda (HUB)',
       'Generación': '1, 2 o 3',
@@ -375,7 +385,12 @@ export const rodamientosProducts: Product[] = [
     subcategory: 'rodillos-cilindricos',
     description: 'Rodamientos para cargas combinadas radiales y axiales elevadas',
     longDescription: 'Los rodamientos de rodillos cónicos tienen rodillos en forma de tronco de cono que trabajan sobre pistas cónicas. Son separables y pueden soportar cargas combinadas radiales y axiales. Se montan normalmente en pares enfrentados o en tándem, siendo esenciales en aplicaciones automotrices e industriales pesadas.',
-    images: [],
+    images: [
+      {
+        url: '/images/products/rodillo conico.webp',
+        alt: 'Rodamiento de Rodillos Cónicos',
+      },
+    ],
     specifications: {
       'Tipo': 'Rodillos cónicos',
       'Serie': '302, 303, 320, 322',
@@ -417,7 +432,12 @@ export const rodamientosProducts: Product[] = [
     subcategory: 'rigidos-bolas',
     description: 'Rodamientos de alta performance con bolas cerámicas',
     longDescription: 'Los rodamientos híbridos combinan aros de acero con bolas de cerámica (nitruro de silicio). Ofrecen ventajas significativas en aplicaciones de alta velocidad, ambientes corrosivos o donde se requiere mínima lubricación. La cerámica es más dura, ligera y resistente que el acero.',
-    images: [],
+    images: [
+      {
+        url: '/images/products/hibrido ceramico.webp',
+        alt: 'Rodamiento Híbrido Cerámico',
+      },
+    ],
     specifications: {
       'Tipo': 'Híbrido cerámico',
       'Material bolas': 'Nitruro de silicio (Si3N4)',

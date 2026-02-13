@@ -1,19 +1,30 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getWhatsAppLink } from '@/lib/utils';
 
 export default function WhatsAppButton() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <a
       href={getWhatsAppLink()}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+      className={`fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#1da851] text-white p-4 rounded-full shadow-lg transition-all duration-500 ease-out-expo hover:scale-110 hover:shadow-xl hover:shadow-green-500/25 wa-pulse ${
+        visible
+          ? 'opacity-100 translate-y-0 scale-100'
+          : 'opacity-0 translate-y-8 scale-75 pointer-events-none'
+      }`}
       aria-label="Contactar por WhatsApp"
     >
       <svg
-        className="w-8 h-8"
+        className="w-7 h-7"
         fill="currentColor"
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"

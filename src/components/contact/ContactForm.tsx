@@ -59,14 +59,14 @@ export default function ContactForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Nombre */}
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="name" className="block text-sm font-medium text-stone-700 mb-1">
           Nombre completo *
         </label>
         <input
           {...register('name')}
           type="text"
           id="name"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full px-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-stone-50 focus:bg-white"
           placeholder="Juan Pérez"
         />
         {errors.name && (
@@ -76,28 +76,28 @@ export default function ContactForm() {
 
       {/* Empresa */}
       <div>
-        <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="company" className="block text-sm font-medium text-stone-700 mb-1">
           Empresa (opcional)
         </label>
         <input
           {...register('company')}
           type="text"
           id="company"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-stone-50 focus:bg-white"
           placeholder="Mi Empresa S.A."
         />
       </div>
 
       {/* Email */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="email" className="block text-sm font-medium text-stone-700 mb-1">
           Email *
         </label>
         <input
           {...register('email')}
           type="email"
           id="email"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-stone-50 focus:bg-white"
           placeholder="correo@ejemplo.com"
         />
         {errors.email && (
@@ -107,14 +107,14 @@ export default function ContactForm() {
 
       {/* Teléfono */}
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="phone" className="block text-sm font-medium text-stone-700 mb-1">
           Teléfono *
         </label>
         <input
           {...register('phone')}
           type="tel"
           id="phone"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-stone-50 focus:bg-white"
           placeholder="299-1234567"
         />
         {errors.phone && (
@@ -124,21 +124,21 @@ export default function ContactForm() {
 
       {/* Producto de interés */}
       <div>
-        <label htmlFor="product" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="product" className="block text-sm font-medium text-stone-700 mb-1">
           Producto de interés (opcional)
         </label>
         <select
           {...register('product')}
           id="product"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-stone-50 focus:bg-white"
         >
           <option value="">Seleccione una opción</option>
           <option value="rodamientos">Rodamientos Industriales</option>
           <option value="retenes">Retenes</option>
+          <option value="orings">O-Rings</option>
           <option value="transmision">Componentes de Transmisión</option>
           <option value="herramientas">Herramientas</option>
           <option value="sellos">Sellos Mecánicos</option>
-          <option value="iveco">Repuestos IVECO</option>
           <option value="automotriz">Línea Automotriz</option>
           <option value="otro">Otro</option>
         </select>
@@ -146,14 +146,14 @@ export default function ContactForm() {
 
       {/* Mensaje */}
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="message" className="block text-sm font-medium text-stone-700 mb-1">
           Mensaje *
         </label>
         <textarea
           {...register('message')}
           id="message"
           rows={5}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full px-4 py-2 border border-stone-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-stone-50 focus:bg-white"
           placeholder="Describa su consulta o necesidad..."
         />
         {errors.message && (
@@ -167,9 +167,9 @@ export default function ContactForm() {
           {...register('isEmergency')}
           type="checkbox"
           id="isEmergency"
-          className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+          className="h-4 w-4 text-primary focus:ring-primary border-stone-300 rounded"
         />
-        <label htmlFor="isEmergency" className="ml-2 block text-sm text-gray-700">
+        <label htmlFor="isEmergency" className="ml-2 block text-sm text-stone-600">
           Es una emergencia (requiere atención inmediata)
         </label>
       </div>
@@ -178,7 +178,7 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-md font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-primary hover:bg-primary-dark text-white px-6 py-3.5 rounded-xl font-medium transition-all duration-300 ease-out-expo disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 active:translate-y-0"
       >
         {isSubmitting ? 'Enviando...' : 'Enviar Consulta'}
       </button>
