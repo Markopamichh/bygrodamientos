@@ -13,6 +13,7 @@ export interface Category {
   description: string;
   longDescription: string;
   image: string;
+  isCustomOrder?: boolean;
   subcategories: Subcategory[];
   seo: {
     metaTitle: string;

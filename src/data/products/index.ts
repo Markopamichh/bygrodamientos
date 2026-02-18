@@ -3,12 +3,14 @@ import { rodamientosProducts } from './rodamientos';
 import { retenesProducts } from './retenes';
 import { transmisionProducts } from './transmision';
 import { herramientasProducts } from './herramientas';
+import { automotrizProducts } from './automotriz';
 
 export const allProducts: Product[] = [
   ...rodamientosProducts,
   ...retenesProducts,
   ...transmisionProducts,
   ...herramientasProducts,
+  ...automotrizProducts,
 ];
 
 export function getProductBySlug(slug: string): Product | undefined {
