@@ -111,7 +111,6 @@ export const categories: Category[] = [
       { id: 'distribucion', name: 'Kits de Distribución', slug: 'distribucion' },
       { id: 'bombas-agua', name: 'Bombas de Agua', slug: 'bombas-agua' },
       { id: 'kit-poli-v', name: 'Kit Poli V', slug: 'kit-poli-v' },
-      { id: 'ruedas', name: 'Cubos de Rueda', slug: 'ruedas' },
     ],
     seo: {
       metaTitle: 'Repuestos Automotriz | BYG Rodamientos Neuquén',
