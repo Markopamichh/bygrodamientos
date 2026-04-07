@@ -1,7 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import type { CategoriaFormState } from '@/app/admin/actions';
 import { useEffect, useState } from 'react';
 
@@ -34,7 +33,7 @@ export default function CategoriaForm({
 }: {
   action: (prev: CategoriaFormState, fd: FormData) => Promise<CategoriaFormState>;
 }) {
-  const [state, formAction] = useActionState<CategoriaFormState, FormData>(action, {});
+  const [state, formAction] = useFormState<CategoriaFormState, FormData>(action, {});
   const [nombre, setNombre] = useState('');
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
