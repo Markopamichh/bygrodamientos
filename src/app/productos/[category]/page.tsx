@@ -5,30 +5,48 @@ import Container from '@/components/shared/Container';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import ProductGrid from '@/components/products/ProductGrid';
 import { categories } from '@/data/categories';
-import { getProductsByCategory } from '@/data/products';
+import { createClient } from '@/lib/supabase/server';
+import type { ProductoRow, CategoriaRow } from '@/types/database';
+import type { Product, CategoryType } from '@/types/product';
+
+export const revalidate = 60;
 
 interface CategoryPageProps {
-  params: Promise<{
-    category: string;
-  }>;
+  params: Promise<{ category: string }>;
+}
+
+function mapProduct(p: ProductoRow, catSlug: string): Product {
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.nombre,
+    category: catSlug as CategoryType,
+    subcategory: p.subcategoria ?? '',
+    description: p.descripcion ?? '',
+    longDescription: p.descripcion_larga ?? '',
+    images: p.imagen_url ? [{ url: p.imagen_url, alt: p.nombre }] : [],
+    specifications: p.especificaciones ?? {},
+    applications: p.aplicaciones ?? [],
+    features: p.caracteristicas ?? [],
+    inStock: p.stock > 0,
+    manufacturer: p.fabricante ?? undefined,
+    partNumber: p.numero_parte ?? undefined,
+    seo: {
+      metaTitle: `${p.nombre} | BYG Rodamientos Neuquén`,
+      metaDescription: p.descripcion ?? p.nombre,
+      keywords: [p.nombre.toLowerCase()],
+    },
+  };
 }
 
 export async function generateStaticParams() {
-  return categories.map((category) => ({
-    category: category.slug,
-  }));
+  return categories.map((cat) => ({ category: cat.slug }));
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { category: categorySlug } = await params;
-  const category = categories.find((cat) => cat.slug === categorySlug);
-
-  if (!category) {
-    return {
-      title: 'Categoría no encontrada',
-    };
-  }
-
+  const category = categories.find((c) => c.slug === categorySlug);
+  if (!category) return { title: 'Categoría no encontrada' };
   return {
     title: category.seo.metaTitle,
     description: category.seo.metaDescription,
@@ -38,13 +56,30 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category: categorySlug } = await params;
-  const category = categories.find((cat) => cat.slug === categorySlug);
+  const category = categories.find((c) => c.slug === categorySlug);
+  if (!category) notFound();
 
-  if (!category) {
-    notFound();
+  const supabase = await createClient();
+
+  // Get Supabase category ID by slug
+  const { data: dbCategory } = await supabase
+    .from('categorias')
+    .select('id')
+    .eq('slug', categorySlug)
+    .single();
+
+  let products: Product[] = [];
+
+  if (dbCategory) {
+    const { data: dbProducts } = await supabase
+      .from('productos')
+      .select('*')
+      .eq('categoria_id', dbCategory.id)
+      .eq('activo', true)
+      .order('nombre');
+
+    products = (dbProducts ?? []).map((p) => mapProduct(p as ProductoRow, categorySlug));
   }
-
-  const products = getProductsByCategory(category.id);
 
   return (
     <>
@@ -56,18 +91,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       />
 
       <Container className="py-16">
-        {/* Header */}
         <div className="mb-12">
           <p className="text-sm font-medium text-primary tracking-widest uppercase mb-3">{category.name}</p>
           <h1 className="font-display text-4xl md:text-5xl font-bold text-secondary mb-4">
             {category.name}
           </h1>
-          <p className="text-lg text-stone-500 max-w-3xl">
-            {category.longDescription}
-          </p>
+          <p className="text-lg text-stone-500 max-w-3xl">{category.longDescription}</p>
         </div>
 
-        {/* Subcategories */}
         {category.subcategories.length > 0 && (
           <div className="mb-12">
             <h2 className="font-display text-xl font-bold text-secondary mb-4">Subcategorías</h2>
@@ -84,15 +115,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </div>
         )}
 
-        {/* Products Grid */}
         <div>
-          <h2 className="font-display text-2xl font-bold text-secondary mb-6">
-            Productos Disponibles
-          </h2>
+          <h2 className="font-display text-2xl font-bold text-secondary mb-6">Productos Disponibles</h2>
           <ProductGrid products={products} />
         </div>
 
-        {/* CTA */}
         {products.length > 0 && (
           <div className="mt-16 bg-stone-50 border border-stone-200 rounded-2xl p-8 md:p-10 text-center">
             <h3 className="font-display text-2xl font-bold text-secondary mb-3">
