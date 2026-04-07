@@ -44,7 +44,7 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ action, categorias, product, submitLabel = 'Crear producto' }: ProductFormProps) {
-  const [state, formAction] = useActionState<ProductFormState, FormData>(action, {});
+  const [state, formAction] = useActionState<ProductFormState>(action, {});
   const [nombre, setNombre] = useState(product?.nombre ?? '');
   const [slug, setSlug] = useState(product?.slug ?? '');
   const [slugEdited, setSlugEdited] = useState(!!product);
