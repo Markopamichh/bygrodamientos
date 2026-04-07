@@ -134,8 +134,11 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 pt-8 border-t border-stone-800 text-center text-sm text-stone-600">
+        <div className="mt-8 pt-8 border-t border-stone-800 flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-stone-600">
           <p>&copy; {currentYear} BYG Rodamientos. Todos los derechos reservados.</p>
+          <Link href="/admin" className="hover:text-stone-400 transition-colors duration-300">
+            Panel Admin
+          </Link>
         </div>
       </Container>
     </footer>
