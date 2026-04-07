@@ -1,7 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { loginAction, type LoginState } from '@/app/admin/actions';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -54,7 +53,7 @@ function BlockedTimer({ blockExpiresAt }: { blockExpiresAt: string }) {
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
-  const [state, formAction] = useActionState<LoginState>(loginAction, {});
+  const [state, formAction] = useFormState<LoginState, FormData>(loginAction, {});
 
   const isBlocked = state.remainingAttempts === 0 && !!state.blockExpiresAt;
   const showRemainingWarning =

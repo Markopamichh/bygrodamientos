@@ -1,7 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import type { ProductFormState } from '@/app/admin/actions';
 import type { CategoriaRow, ProductoRow } from '@/types/database';
 import { useEffect, useState } from 'react';
@@ -44,7 +43,7 @@ interface ProductFormProps {
 }
 
 export default function ProductForm({ action, categorias, product, submitLabel = 'Crear producto' }: ProductFormProps) {
-  const [state, formAction] = useActionState<ProductFormState>(action, {});
+  const [state, formAction] = useFormState<ProductFormState, FormData>(action, {});
   const [nombre, setNombre] = useState(product?.nombre ?? '');
   const [slug, setSlug] = useState(product?.slug ?? '');
   const [slugEdited, setSlugEdited] = useState(!!product);
