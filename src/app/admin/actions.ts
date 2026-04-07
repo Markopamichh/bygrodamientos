@@ -157,7 +157,14 @@ const productSchema = z.object({
   ),
   imagen_url: z.preprocess(
     (v) => (v === '' ? null : v),
-    z.string().url('URL inválida').nullable().optional()
+    z
+      .string()
+      .refine(
+        (v) => v.startsWith('/') || v.startsWith('http://') || v.startsWith('https://'),
+        'Debe ser una URL (https://...) o una ruta relativa (/images/...)'
+      )
+      .nullable()
+      .optional()
   ),
   fabricante: z.string().max(200).optional(),
   activo: z.preprocess((v) => v === 'true' || v === true, z.boolean()),
