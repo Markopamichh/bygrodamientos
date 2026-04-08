@@ -54,7 +54,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('activo', true);
 
     productPages = (products ?? []).map((p) => {
-      const catSlug = (p.categorias as { slug: string } | null)?.slug ?? '';
+      const catSlug = (p.categorias as unknown as { slug: string } | null)?.slug ?? '';
       return {
         url: `${baseUrl}/productos/${catSlug}/${p.slug}`,
         lastModified: new Date(p.updated_at),

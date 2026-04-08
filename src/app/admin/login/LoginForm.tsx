@@ -53,7 +53,7 @@ function BlockedTimer({ blockExpiresAt }: { blockExpiresAt: string }) {
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
-  const [state, formAction] = useFormState<LoginState>(loginAction, {});
+  const [state, formAction] = useFormState<LoginState, FormData>(loginAction, {});
 
   const isBlocked = state.remainingAttempts === 0 && !!state.blockExpiresAt;
   const showRemainingWarning =

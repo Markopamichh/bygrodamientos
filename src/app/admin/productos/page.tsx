@@ -117,7 +117,7 @@ export default async function ProductosPage({
             </thead>
             <tbody className="divide-y divide-white/5">
               {productos?.map((p) => {
-                const cat = p.categorias as { nombre: string } | null;
+                const cat = p.categorias as unknown as { nombre: string } | null;
                 return (
                   <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                     {/* Image + name */}

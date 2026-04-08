@@ -53,7 +53,7 @@ export async function generateStaticParams() {
     if (!products) return [];
 
     return products.map((p) => ({
-      category: (p.categorias as { slug: string } | null)?.slug ?? 'productos',
+      category: (p.categorias as unknown as { slug: string } | null)?.slug ?? 'productos',
       slug: p.slug,
     }));
   } catch {
@@ -104,7 +104,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .limit(4);
 
   const relatedProducts: Product[] = (rawRelated ?? []).map((p) => {
-    const catSlug = (p.categorias as { slug: string } | null)?.slug ?? categorySlug;
+    const catSlug = (p.categorias as unknown as { slug: string } | null)?.slug ?? categorySlug;
     return mapProduct(p as ProductoRow, catSlug);
   });
 
