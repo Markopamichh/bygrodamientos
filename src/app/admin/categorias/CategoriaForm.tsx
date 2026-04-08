@@ -33,7 +33,7 @@ export default function CategoriaForm({
 }: {
   action: (prev: CategoriaFormState, fd: FormData) => Promise<CategoriaFormState>;
 }) {
-  const [state, formAction] = useFormState<CategoriaFormState, FormData>(action, {});
+  const [state, formAction] = useFormState<CategoriaFormState>(action, {});
   const [nombre, setNombre] = useState('');
   const [slug, setSlug] = useState('');
   const [slugEdited, setSlugEdited] = useState(false);
