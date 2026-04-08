@@ -36,11 +36,23 @@ const navLinks = [
   },
 ];
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function AdminSidebar({ isOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 shrink-0 bg-[#1a1a1a] border-r border-white/10 flex flex-col h-full">
+    <aside
+      className={`
+        w-60 shrink-0 bg-[#1a1a1a] border-r border-white/10 flex flex-col h-full
+        fixed md:relative z-50 md:z-auto top-0 left-0
+        transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}
+    >
       {/* Logo */}
       <div className="p-5 border-b border-white/10">
         <div className="flex items-center gap-3">
@@ -52,10 +64,20 @@ export default function AdminSidebar() {
               className="object-contain"
             />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <p className="text-white font-bold text-sm leading-none">BYG Rodamientos</p>
             <p className="text-white/40 text-xs mt-0.5">Panel Administrativo</p>
           </div>
+          {/* Close button - mobile only */}
+          <button
+            onClick={onClose}
+            className="md:hidden p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            aria-label="Cerrar menú"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -69,6 +91,7 @@ export default function AdminSidebar() {
             <Link
               key={link.href}
               href={link.href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                 isActive
                   ? 'bg-yellow-500/15 text-yellow-400 font-medium'
@@ -88,6 +111,7 @@ export default function AdminSidebar() {
           href="/"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={onClose}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white/40 hover:text-white hover:bg-white/5 transition-all duration-150"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
