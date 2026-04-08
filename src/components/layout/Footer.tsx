@@ -20,7 +20,7 @@ export default function Footer() {
                 alt="BYG Rodamientos"
                 width={200}
                 height={224}
-                className="h-16 w-auto object-contain"
+                className="h-24 w-auto object-contain"
               />
             </div>
             <p className="text-stone-400 text-sm leading-relaxed mb-4">

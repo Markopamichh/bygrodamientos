@@ -75,7 +75,7 @@ export default function Header() {
                 width={200}
                 height={224}
                 priority
-                className="h-14 w-auto object-contain [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.25))]"
+                className="h-20 w-auto object-contain [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.25))]"
               />
             </Link>
 
