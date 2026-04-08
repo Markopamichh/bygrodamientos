@@ -14,13 +14,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Empresa */}
           <div>
-            <div className="mb-6 -my-10">
+            <div className="mb-6">
               <Image
                 src="/images/Logo/logobyg1.png"
                 alt="BYG Rodamientos"
-                width={500}
-                height={560}
-                className="h-56 w-auto object-contain"
+                width={200}
+                height={224}
+                className="h-16 w-auto object-contain"
               />
             </div>
             <p className="text-stone-400 text-sm leading-relaxed mb-4">

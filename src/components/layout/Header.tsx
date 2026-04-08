@@ -68,14 +68,14 @@ export default function Header() {
         <Container>
           <div className="flex justify-between items-center">
             {/* Logo */}
-            <Link href="/" className="flex items-center -my-20">
+            <Link href="/" className="flex items-center">
               <Image
                 src="/images/Logo/logobyg1.png"
                 alt="BYG Rodamientos"
-                width={500}
-                height={560}
+                width={200}
+                height={224}
                 priority
-                className="h-56 w-auto object-contain"
+                className="h-14 w-auto object-contain [filter:drop-shadow(0_1px_3px_rgba(0,0,0,0.25))]"
               />
             </Link>
 
