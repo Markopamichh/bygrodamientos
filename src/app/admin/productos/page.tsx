@@ -10,6 +10,7 @@ export const metadata = { title: 'Productos — Admin BYG' };
 interface SearchParams {
   q?: string;
   categoria?: string;
+  filter?: string;
 }
 
 export default async function ProductosPage({
@@ -17,7 +18,7 @@ export default async function ProductosPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { q, categoria } = await searchParams;
+  const { q, categoria, filter } = await searchParams;
   const supabase = await createClient();
 
   // Build query
@@ -28,6 +29,9 @@ export default async function ProductosPage({
 
   if (categoria) query = query.eq('categoria_id', categoria);
   if (q) query = query.ilike('nombre', `%${q}%`);
+  if (filter === 'sin-imagen') query = query.is('imagen_url', null);
+  if (filter === 'sin-stock') query = query.eq('stock', 0);
+  if (filter === 'stock-critico') query = query.lte('stock', 2);
 
   const [{ data: productos }, { data: categorias }] = await Promise.all([
     query,

@@ -322,3 +322,44 @@ export async function deleteCategoriaAction(id: string): Promise<{ error?: strin
   revalidatePath('/admin/categorias');
   return {};
 }
+
+// ─────────────────────────────────────────────
+// EXPORT CSV
+// ─────────────────────────────────────────────
+export async function exportProductsCSVAction(): Promise<{ csv: string; error?: string }> {
+  const supabase = await createAuthClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { csv: '', error: 'No autorizado' };
+
+  const { data, error } = await supabase
+    .from('productos')
+    .select('id, nombre, slug, descripcion, categoria_id, subcategoria, stock, precio, fabricante, activo, imagen_url, created_at, updated_at, categorias(nombre)')
+    .order('nombre');
+
+  if (error || !data) return { csv: '', error: 'Error al obtener datos' };
+
+  const escape = (v: unknown) => {
+    const s = String(v ?? '').replace(/"/g, '""');
+    return `"${s}"`;
+  };
+
+  const headers = ['ID', 'Nombre', 'Slug', 'Categoría', 'Subcategoría', 'Stock', 'Precio', 'Fabricante', 'Activo', 'Imagen URL', 'Descripción', 'Creado', 'Actualizado'];
+  const rows = data.map(p => [
+    escape(p.id),
+    escape(p.nombre),
+    escape(p.slug),
+    escape((p.categorias as unknown as { nombre: string } | null)?.nombre ?? ''),
+    escape(p.subcategoria),
+    p.stock,
+    p.precio ?? '',
+    escape(p.fabricante),
+    p.activo ? 'Sí' : 'No',
+    escape(p.imagen_url),
+    escape(p.descripcion),
+    p.created_at,
+    p.updated_at,
+  ]);
+
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  return { csv };
+}
