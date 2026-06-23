@@ -1,13 +1,23 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { createProductAction } from '@/app/admin/actions';
 import ProductForm from './ProductForm';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 export const metadata = { title: 'Nuevo Producto — Admin BYG' };
 
 export default async function NuevoProductoPage() {
-  const supabase = await createClient();
-  const { data: categorias } = await supabase.from('categorias').select('*').order('nombre');
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('categorias')
+    .select('id, nombre, slug, created_at')
+    .order('nombre');
+
+  const categorias = (data ?? []).map((c) => ({
+    id: c.id as string,
+    nombre: c.nombre as string,
+    slug: c.slug as string,
+    created_at: c.created_at as string,
+  }));
 
   return (
     <div className="p-6 md:p-8 max-w-3xl">
@@ -20,13 +30,8 @@ export default async function NuevoProductoPage() {
         </a>
         <h1 className="text-2xl font-bold text-white">Nuevo Producto</h1>
       </div>
-
       <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-        <ProductForm
-          action={createProductAction}
-          categorias={categorias ?? []}
-          submitLabel="Crear producto"
-        />
+        <ProductForm action={createProductAction} categorias={categorias} submitLabel="Crear producto" />
       </div>
     </div>
   );

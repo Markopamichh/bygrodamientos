@@ -5,6 +5,9 @@ import Image from 'next/image';
 import Container from '@/components/shared/Container';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { categories } from '@/data/categories';
+import { createAdminClient } from '@/lib/supabase/server';
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Catálogo de Productos',
@@ -50,7 +53,13 @@ const categoryIcons: Record<string, React.ReactNode> = {
   ),
 };
 
-export default function ProductosPage() {
+export default async function ProductosPage() {
+  // Fetch DB categories and merge with hardcoded ones
+  const supabase = createAdminClient();
+  const { data: dbCats } = await supabase.from('categorias').select('nombre, slug, imagen_url').order('nombre');
+  const hardcodedSlugs = new Set(categories.map((c) => c.slug));
+  const extraCats = (dbCats ?? []).filter((c) => !hardcodedSlugs.has(c.slug as string));
+
   return (
     <>
       <Breadcrumbs items={[{ label: 'Productos' }]} />
@@ -168,6 +177,42 @@ export default function ProductosPage() {
               </Link>
             );
           })}
+
+          {/* Categorías extra agregadas desde el panel admin */}
+          {extraCats.map((cat) => (
+            <Link
+              key={cat.slug}
+              href={`/productos/${cat.slug}`}
+              className="card-accent group bg-white border border-stone-200 rounded-xl overflow-hidden hover:shadow-xl hover:shadow-stone-200/50 hover:-translate-y-1 transition-all duration-500 ease-out-expo"
+            >
+              <div className="aspect-[4/3] bg-stone-50 flex items-center justify-center relative overflow-hidden">
+                {cat.imagen_url ? (
+                  <Image
+                    src={cat.imagen_url as string}
+                    alt={cat.nombre as string}
+                    fill
+                    className="object-contain p-4 group-hover:scale-105 transition-transform duration-700 ease-out-expo"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                ) : (
+                  <div className="text-stone-300 group-hover:text-primary transition-all duration-500 ease-out-expo group-hover:scale-110">
+                    {categoryIcons.rodamientos}
+                  </div>
+                )}
+              </div>
+              <div className="p-6">
+                <h2 className="font-display text-xl font-bold text-secondary mb-3 group-hover:text-primary transition-colors duration-300">
+                  {cat.nombre}
+                </h2>
+                <div className="flex items-center text-primary font-medium text-sm">
+                  Ver productos
+                  <svg className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300 ease-out-expo" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </Container>
     </>

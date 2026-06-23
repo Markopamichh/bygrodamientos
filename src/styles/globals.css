@@ -6,10 +6,13 @@
   html {
     @apply antialiased;
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-white text-stone-900 font-body;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -19,7 +22,7 @@
 
 @layer components {
   .container-custom {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   /* Scroll reveal - elements start hidden, animate in when visible */

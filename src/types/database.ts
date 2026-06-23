@@ -1,5 +1,5 @@
 export interface CategoriaRow {
-  id: string;
+  id: string;     // = slug (Firestore document ID)
   nombre: string;
   slug: string;
   created_at: string;
@@ -11,7 +11,9 @@ export interface ProductoRow {
   slug: string;
   descripcion: string | null;
   descripcion_larga: string | null;
-  categoria_id: string | null;
+  categoria_id: string | null;       // = slug de la categoría (Firestore doc ID)
+  categoria_nombre: string | null;   // desnormalizado
+  categoria_slug: string | null;     // desnormalizado
   subcategoria: string | null;
   stock: number;
   precio: number | null;
@@ -24,10 +26,6 @@ export interface ProductoRow {
   activo: boolean;
   created_at: string;
   updated_at: string;
-}
-
-export interface ProductoWithCategoria extends ProductoRow {
-  categorias: CategoriaRow | null;
 }
 
 export interface LoginAttemptRow {

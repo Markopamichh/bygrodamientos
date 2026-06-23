@@ -1,31 +1,17 @@
 'use server';
 
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { createServiceClient } from '@/lib/supabase/server';
+import { createAuthClient, createAdminClient } from '@/lib/supabase/server';
 
-// ─────────────────────────────────────────────
-// Auth client (user session via cookies)
-// ─────────────────────────────────────────────
-async function createAuthClient() {
-  const cookieStore = await cookies();
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) => {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
+const SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000; // 8 horas
+
+async function getSessionUser() {
+  const supabase = await createAuthClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
 }
 
 // ─────────────────────────────────────────────
@@ -35,10 +21,10 @@ const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000; // 15 min
 
 async function checkRateLimit(ip: string) {
-  const adminSupabase = createServiceClient();
+  const supabase = createAdminClient();
   const windowStart = new Date(Date.now() - WINDOW_MS).toISOString();
 
-  const { count } = await adminSupabase
+  const { count } = await supabase
     .from('login_attempts')
     .select('*', { count: 'exact', head: true })
     .eq('ip_address', ip)
@@ -47,7 +33,7 @@ async function checkRateLimit(ip: string) {
   const attempts = count ?? 0;
 
   if (attempts >= MAX_ATTEMPTS) {
-    const { data: oldest } = await adminSupabase
+    const { data: oldest } = await supabase
       .from('login_attempts')
       .select('attempted_at')
       .eq('ip_address', ip)
@@ -59,7 +45,6 @@ async function checkRateLimit(ip: string) {
     const blockExpiresAt = oldest
       ? new Date(new Date(oldest.attempted_at).getTime() + WINDOW_MS)
       : new Date(Date.now() + WINDOW_MS);
-
     return { blocked: true, remainingAttempts: 0, blockExpiresAt };
   }
 
@@ -67,8 +52,11 @@ async function checkRateLimit(ip: string) {
 }
 
 async function recordFailedAttempt(ip: string) {
-  const adminSupabase = createServiceClient();
-  await adminSupabase.from('login_attempts').insert({ ip_address: ip });
+  const supabase = createAdminClient();
+  await supabase.from('login_attempts').insert({
+    ip_address: ip,
+    attempted_at: new Date().toISOString(),
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -92,8 +80,9 @@ export async function loginAction(
   const headersList = await headers();
   const ip =
     headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    headersList.get('x-real-ip') ||
-    '127.0.0.1';
+    headersList.get('x-real-ip');
+
+  if (!ip) return { error: 'No se pudo verificar la sesión. Intentá de nuevo.' };
 
   const rateLimit = await checkRateLimit(ip);
   if (rateLimit.blocked) {
@@ -110,16 +99,17 @@ export async function loginAction(
   });
 
   if (!parsed.success) {
-    return { error: 'Credenciales incorrectas', remainingAttempts: rateLimit.remainingAttempts };
+    await recordFailedAttempt(ip);
+    return { error: 'Credenciales incorrectas', remainingAttempts: rateLimit.remainingAttempts - 1 };
   }
 
   const supabase = await createAuthClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { error: authError } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
   });
 
-  if (error) {
+  if (authError) {
     await recordFailedAttempt(ip);
     return {
       error: 'Credenciales incorrectas',
@@ -148,7 +138,7 @@ const productSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
   descripcion: z.string().max(500).optional(),
   descripcion_larga: z.string().max(3000).optional(),
-  categoria_id: z.string().uuid('Categoría inválida'),
+  categoria_id: z.string().min(1, 'Categoría inválida'),
   subcategoria: z.string().max(100).optional(),
   stock: z.coerce.number().int().min(0, 'El stock no puede ser negativo'),
   precio: z.preprocess(
@@ -179,10 +169,7 @@ export async function createProductAction(
   _prevState: ProductFormState,
   formData: FormData
 ): Promise<ProductFormState> {
-  const supabase = await createAuthClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { error: 'No autorizado' };
 
   const parsed = productSchema.safeParse(Object.fromEntries(formData));
@@ -190,8 +177,17 @@ export async function createProductAction(
     return { errors: parsed.error.flatten().fieldErrors };
   }
 
+  const supabase = createAdminClient();
+  const { data: cat } = await supabase
+    .from('categorias')
+    .select('nombre, slug')
+    .eq('id', parsed.data.categoria_id)
+    .single();
+
   const { error } = await supabase.from('productos').insert({
     ...parsed.data,
+    categoria_nombre: cat?.nombre ?? '',
+    categoria_slug: cat?.slug ?? parsed.data.categoria_id,
     especificaciones: {},
     aplicaciones: [],
     caracteristicas: [],
@@ -209,10 +205,7 @@ export async function updateProductAction(
   _prevState: ProductFormState,
   formData: FormData
 ): Promise<ProductFormState> {
-  const supabase = await createAuthClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { error: 'No autorizado' };
 
   const parsed = productSchema.safeParse(Object.fromEntries(formData));
@@ -220,9 +213,21 @@ export async function updateProductAction(
     return { errors: parsed.error.flatten().fieldErrors };
   }
 
+  const supabase = createAdminClient();
+  const { data: cat } = await supabase
+    .from('categorias')
+    .select('nombre, slug')
+    .eq('id', parsed.data.categoria_id)
+    .single();
+
   const { error } = await supabase
     .from('productos')
-    .update({ ...parsed.data, updated_at: new Date().toISOString() })
+    .update({
+      ...parsed.data,
+      categoria_nombre: cat?.nombre ?? '',
+      categoria_slug: cat?.slug ?? parsed.data.categoria_id,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', id);
 
   if (error) return { error: error.message };
@@ -233,12 +238,10 @@ export async function updateProductAction(
 }
 
 export async function deleteProductAction(id: string): Promise<{ error?: string }> {
-  const supabase = await createAuthClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { error: 'No autorizado' };
 
+  const supabase = createAdminClient();
   const { error } = await supabase.from('productos').delete().eq('id', id);
   if (error) return { error: error.message };
 
@@ -251,12 +254,10 @@ export async function toggleProductActiveAction(
   id: string,
   activo: boolean
 ): Promise<{ error?: string }> {
-  const supabase = await createAuthClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { error: 'No autorizado' };
 
+  const supabase = createAdminClient();
   const { error } = await supabase
     .from('productos')
     .update({ activo, updated_at: new Date().toISOString() })
@@ -279,6 +280,10 @@ const categoriaSchema = z.object({
     .min(1, 'El slug es requerido')
     .max(100)
     .regex(/^[a-z0-9-]+$/, 'Solo letras minúsculas, números y guiones'),
+  imagen_url: z.preprocess(
+    (v) => (v === '' ? null : v),
+    z.string().url('URL inválida').nullable().optional()
+  ),
 });
 
 export type CategoriaFormState = {
@@ -291,10 +296,7 @@ export async function createCategoriaAction(
   _prevState: CategoriaFormState,
   formData: FormData
 ): Promise<CategoriaFormState> {
-  const supabase = await createAuthClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { error: 'No autorizado' };
 
   const parsed = categoriaSchema.safeParse(Object.fromEntries(formData));
@@ -302,24 +304,32 @@ export async function createCategoriaAction(
     return { errors: parsed.error.flatten().fieldErrors };
   }
 
-  const { error } = await supabase.from('categorias').insert(parsed.data);
+  const supabase = createAdminClient();
+  const { error } = await supabase.from('categorias').insert({
+    nombre: parsed.data.nombre,
+    slug: parsed.data.slug,
+    imagen_url: parsed.data.imagen_url ?? null,
+  });
+
   if (error) return { error: error.message };
 
   revalidatePath('/admin/categorias');
+  revalidatePath('/admin/productos/nuevo');
+  revalidatePath('/admin/productos', 'layout');
   return { success: true };
 }
 
 export async function deleteCategoriaAction(id: string): Promise<{ error?: string }> {
-  const supabase = await createAuthClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { error: 'No autorizado' };
 
+  const supabase = createAdminClient();
   const { error } = await supabase.from('categorias').delete().eq('id', id);
   if (error) return { error: error.message };
 
   revalidatePath('/admin/categorias');
+  revalidatePath('/admin/productos/nuevo');
+  revalidatePath('/admin/productos', 'layout');
   return {};
 }
 
@@ -327,28 +337,33 @@ export async function deleteCategoriaAction(id: string): Promise<{ error?: strin
 // EXPORT CSV
 // ─────────────────────────────────────────────
 export async function exportProductsCSVAction(): Promise<{ csv: string; error?: string }> {
-  const supabase = await createAuthClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { csv: '', error: 'No autorizado' };
 
+  const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('productos')
-    .select('id, nombre, slug, descripcion, categoria_id, subcategoria, stock, precio, fabricante, activo, imagen_url, created_at, updated_at, categorias(nombre)')
+    .select('*')
     .order('nombre');
 
-  if (error || !data) return { csv: '', error: 'Error al obtener datos' };
+  if (error) return { csv: '', error: error.message };
 
   const escape = (v: unknown) => {
     const s = String(v ?? '').replace(/"/g, '""');
     return `"${s}"`;
   };
 
-  const headers = ['ID', 'Nombre', 'Slug', 'Categoría', 'Subcategoría', 'Stock', 'Precio', 'Fabricante', 'Activo', 'Imagen URL', 'Descripción', 'Creado', 'Actualizado'];
-  const rows = data.map(p => [
+  const csvHeaders = [
+    'ID', 'Nombre', 'Slug', 'Categoría', 'Subcategoría',
+    'Stock', 'Precio', 'Fabricante', 'Activo', 'Imagen URL',
+    'Descripción', 'Creado', 'Actualizado',
+  ];
+
+  const rows = (data ?? []).map((p) => [
     escape(p.id),
     escape(p.nombre),
     escape(p.slug),
-    escape((p.categorias as unknown as { nombre: string } | null)?.nombre ?? ''),
+    escape(p.categoria_nombre ?? ''),
     escape(p.subcategoria),
     p.stock,
     p.precio ?? '',
@@ -360,6 +375,155 @@ export async function exportProductsCSVAction(): Promise<{ csv: string; error?: 
     p.updated_at,
   ]);
 
-  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const csv = [csvHeaders, ...rows].map((r) => r.join(',')).join('\n');
   return { csv };
+}
+
+// ─────────────────────────────────────────────
+// IMPORT CSV
+// ─────────────────────────────────────────────
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+const importRowSchema = z.object({
+  nombre: z.string().min(1).max(200),
+  slug: z.string().max(200).optional(),
+  categoria_nombre: z.string().min(1),
+  subcategoria: z.string().max(100).optional(),
+  stock: z.coerce.number().int().min(0).default(0),
+  precio: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? null : v),
+    z.coerce.number().min(0).nullable().default(null)
+  ),
+  fabricante: z.string().max(200).optional(),
+  imagen_url: z.preprocess(
+    (v) => (v === '' || v === null ? null : v),
+    z.string()
+      .refine(
+        (v) => v.startsWith('/') || v.startsWith('http://') || v.startsWith('https://'),
+        'URL inválida'
+      )
+      .nullable()
+      .optional()
+  ),
+  descripcion: z.string().max(500).optional(),
+  descripcion_larga: z.string().max(3000).optional(),
+  activo: z.preprocess(
+    (v) => {
+      if (typeof v === 'boolean') return v;
+      const s = String(v ?? '').toLowerCase().trim();
+      return s === 'sí' || s === 'si' || s === 'true' || s === '1' || s === 'yes';
+    },
+    z.boolean().default(true)
+  ),
+});
+
+export type ImportRow = z.infer<typeof importRowSchema>;
+
+export type ImportProductsResult = {
+  inserted: number;
+  errors: { row: number; nombre: string; message: string }[];
+};
+
+export async function importProductsAction(
+  rows: Record<string, string>[]
+): Promise<ImportProductsResult> {
+  const user = await getSessionUser();
+  if (!user) return { inserted: 0, errors: [{ row: 0, nombre: '', message: 'No autorizado' }] };
+
+  const supabase = createAdminClient();
+
+  // Fetch all categories once — index by nombre AND slug for flexible matching
+  const { data: cats } = await supabase.from('categorias').select('id, nombre, slug');
+  const catMap = new Map<string, typeof cats[0]>();
+  for (const c of cats ?? []) {
+    catMap.set(c.nombre.toLowerCase().trim(), c);
+    catMap.set(c.slug.toLowerCase().trim(), c);
+  }
+
+  // Load existing slugs to avoid conflicts
+  const { data: existingSlugs } = await supabase.from('productos').select('slug');
+  const usedSlugs = new Set((existingSlugs ?? []).map((r) => r.slug as string));
+
+  const toInsert: object[] = [];
+  const errors: ImportProductsResult['errors'] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const raw = rows[i];
+    const parsed = importRowSchema.safeParse(raw);
+
+    if (!parsed.success) {
+      const msg = parsed.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join('; ');
+      errors.push({ row: i + 2, nombre: raw.nombre ?? '', message: msg });
+      continue;
+    }
+
+    const d = parsed.data;
+    const cat = catMap.get(d.categoria_nombre.toLowerCase().trim());
+    if (!cat) {
+      errors.push({ row: i + 2, nombre: d.nombre, message: `Categoría "${d.categoria_nombre}" no existe` });
+      continue;
+    }
+
+    // Make slug unique within this batch and against existing DB slugs
+    let baseSlug = d.slug ? d.slug : slugify(d.nombre);
+    let slug = baseSlug;
+    let counter = 2;
+    while (usedSlugs.has(slug)) {
+      slug = `${baseSlug}-${counter++}`;
+    }
+    usedSlugs.add(slug);
+
+    toInsert.push({
+      nombre: d.nombre,
+      slug,
+      categoria_id: cat.id,
+      categoria_nombre: cat.nombre,
+      categoria_slug: cat.slug,
+      subcategoria: d.subcategoria ?? null,
+      stock: d.stock,
+      precio: d.precio,
+      fabricante: d.fabricante ?? null,
+      imagen_url: d.imagen_url ?? null,
+      descripcion: d.descripcion ?? null,
+      descripcion_larga: d.descripcion_larga ?? null,
+      activo: d.activo,
+      especificaciones: {},
+      aplicaciones: [],
+      caracteristicas: [],
+    });
+  }
+
+  let inserted = 0;
+  if (toInsert.length > 0) {
+    const { error } = await supabase.from('productos').insert(toInsert);
+    if (error) {
+      // Fallback: insert one by one so partial failures don't block everything
+      for (const row of toInsert) {
+        const { error: rowError } = await supabase.from('productos').insert(row);
+        if (rowError) {
+          const r = row as Record<string, unknown>;
+          errors.push({ row: 0, nombre: String(r.nombre ?? ''), message: rowError.message });
+        } else {
+          inserted++;
+        }
+      }
+    } else {
+      inserted = toInsert.length;
+    }
+    if (inserted > 0) {
+      revalidatePath('/admin/productos');
+      revalidatePath('/productos', 'layout');
+    }
+  }
+
+  return { inserted, errors };
 }

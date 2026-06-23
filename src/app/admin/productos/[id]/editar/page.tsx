@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { updateProductAction } from '@/app/admin/actions';
 import { notFound } from 'next/navigation';
 import ProductForm from '../../nuevo/ProductForm';
@@ -11,21 +11,51 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data } = await supabase.from('productos').select('nombre').eq('id', id).single();
-  return { title: data ? `Editar: ${data.nombre} — Admin BYG` : 'Editar Producto' };
+  return { title: data?.nombre ? `Editar: ${data.nombre} — Admin BYG` : 'Editar Producto' };
 }
 
 export default async function EditarProductoPage({ params }: Props) {
   const { id } = await params;
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
-  const [{ data: product }, { data: categorias }] = await Promise.all([
+  const [{ data: raw }, { data: categoriasRaw }] = await Promise.all([
     supabase.from('productos').select('*').eq('id', id).single(),
-    supabase.from('categorias').select('*').order('nombre'),
+    supabase.from('categorias').select('id, nombre, slug, created_at').order('nombre'),
   ]);
 
-  if (!product) notFound();
+  if (!raw) notFound();
+
+  const product = {
+    id: raw.id as string,
+    nombre:            raw.nombre as string,
+    slug:              raw.slug as string,
+    descripcion:       (raw.descripcion as string | null) ?? null,
+    descripcion_larga: (raw.descripcion_larga as string | null) ?? null,
+    categoria_id:      (raw.categoria_id as string | null) ?? null,
+    categoria_nombre:  (raw.categoria_nombre as string | null) ?? null,
+    categoria_slug:    (raw.categoria_slug as string | null) ?? null,
+    subcategoria:      (raw.subcategoria as string | null) ?? null,
+    stock:             raw.stock as number,
+    precio:            (raw.precio as number | null) ?? null,
+    imagen_url:        (raw.imagen_url as string | null) ?? null,
+    especificaciones:  (raw.especificaciones as Record<string, string>) ?? {},
+    aplicaciones:      (raw.aplicaciones as string[]) ?? [],
+    caracteristicas:   (raw.caracteristicas as string[]) ?? [],
+    fabricante:        (raw.fabricante as string | null) ?? null,
+    numero_parte:      (raw.numero_parte as string | null) ?? null,
+    activo:            raw.activo as boolean,
+    created_at:        raw.created_at as string,
+    updated_at:        raw.updated_at as string,
+  };
+
+  const categorias = (categoriasRaw ?? []).map((c) => ({
+    id: c.id as string,
+    nombre: c.nombre as string,
+    slug: c.slug as string,
+    created_at: c.created_at as string,
+  }));
 
   const updateWithId = updateProductAction.bind(null, id);
 
@@ -41,14 +71,8 @@ export default async function EditarProductoPage({ params }: Props) {
         <h1 className="text-2xl font-bold text-white">Editar Producto</h1>
         <p className="text-white/40 text-sm mt-0.5">{product.nombre}</p>
       </div>
-
       <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-        <ProductForm
-          action={updateWithId}
-          categorias={categorias ?? []}
-          product={product}
-          submitLabel="Guardar cambios"
-        />
+        <ProductForm action={updateWithId} categorias={categorias} product={product} submitLabel="Guardar cambios" />
       </div>
     </div>
   );

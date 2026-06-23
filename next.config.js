@@ -7,7 +7,7 @@ const nextConfig = {
     minimumCacheTTL: 60,
     remotePatterns: [
       {
-        // Supabase Storage: imágenes subidas desde el panel admin
+        // Supabase Storage
         protocol: 'https',
         hostname: '*.supabase.co',
         pathname: '/storage/v1/object/public/**',
