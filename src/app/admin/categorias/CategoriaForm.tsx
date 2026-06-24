@@ -132,6 +132,7 @@ export default function CategoriaForm({
       <div>
         <label className="block text-xs text-white/40 mb-1.5">Imagen de la categoría</label>
         {previewUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={previewUrl} alt="Preview" className="w-24 h-24 object-cover rounded-lg mb-2 border border-white/10" />
         )}
         <label className={`flex items-center gap-2 w-fit cursor-pointer ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
