@@ -443,7 +443,8 @@ export async function importProductsAction(
 
   // Fetch all categories once — index by nombre AND slug for flexible matching
   const { data: cats } = await supabase.from('categorias').select('id, nombre, slug');
-  const catMap = new Map<string, typeof cats[0]>();
+  type CatRow = { id: string; nombre: string; slug: string };
+  const catMap = new Map<string, CatRow>();
   for (const c of cats ?? []) {
     catMap.set(c.nombre.toLowerCase().trim(), c);
     catMap.set(c.slug.toLowerCase().trim(), c);
