@@ -90,7 +90,7 @@ function downloadTemplate() {
 
 const REQUIRED_COLS = ['nombre', 'categoria_nombre'];
 
-type PreviewRow = Record<string, string> & { _rowIndex: number };
+type PreviewRow = { _rowIndex: number } & Record<string, string>;
 
 export default function ImportCSVForm() {
   const [rows, setRows] = useState<PreviewRow[]>([]);
@@ -126,7 +126,7 @@ export default function ImportCSVForm() {
       }
 
       setHeaders(cols);
-      setRows(parsed.map((r, i) => ({ ...r, _rowIndex: i + 2 })));
+      setRows(parsed.map((r, i) => ({ ...r, _rowIndex: i + 2 } as PreviewRow)));
     };
     reader.readAsText(file, 'utf-8');
   }
