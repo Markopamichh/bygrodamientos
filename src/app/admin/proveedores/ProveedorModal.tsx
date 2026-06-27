@@ -20,12 +20,14 @@ interface Props {
 
 export function ProveedorModal({ proveedor, onClose }: Props) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formRef.current) return;
     setLoading(true);
+    setError(null);
     try {
       const fd = new FormData(formRef.current);
       if (proveedor) {
@@ -34,6 +36,8 @@ export function ProveedorModal({ proveedor, onClose }: Props) {
         await crearProveedorAction(fd);
       }
       onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al guardar');
     } finally {
       setLoading(false);
     }
@@ -80,6 +84,10 @@ export function ProveedorModal({ proveedor, onClose }: Props) {
             <label className="block text-xs text-white/40 mb-1.5 font-medium uppercase tracking-wider">Notas</label>
             <textarea name="notas" defaultValue={proveedor?.notas ?? ''} rows={3} placeholder="Condiciones, descuentos, plazos de entrega..." className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500/50 placeholder-white/20 resize-none" />
           </div>
+
+          {error && (
+            <p className="text-red-400 text-xs bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">{error}</p>
+          )}
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-white/10 text-white/50 hover:text-white text-sm transition-colors">
