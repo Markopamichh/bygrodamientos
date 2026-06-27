@@ -146,7 +146,7 @@ export function ImportStockButton() {
               <>
                 <div className="overflow-auto flex-1 px-6 py-4">
                   <p className="text-white/40 text-xs mb-4">
-                    Solo se actualizan ítems que ya existan en el sistema (buscados por código). Los que no se encuentren quedan como "No encontrados".
+                    Solo se actualizan ítems que ya existan en el sistema (buscados por código). Los que no se encuentren quedan como &quot;No encontrados&quot;.
                   </p>
                   <table className="w-full text-sm">
                     <thead>
