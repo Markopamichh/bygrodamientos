@@ -33,6 +33,8 @@ export default function PresupuestoDetallePage() {
   const [pres, setPres] = useState<Presupuesto | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [enviando, setEnviando] = useState(false);
+  const [emailMsg, setEmailMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   async function cargar() {
     const sb = createClient();
@@ -50,6 +52,23 @@ export default function PresupuestoDetallePage() {
   async function cambiarEstado(nuevo: string) {
     await createClient().from('presupuestos').update({ estado: nuevo }).eq('id', id);
     cargar();
+  }
+
+  async function enviarEmail() {
+    setEnviando(true); setEmailMsg(null);
+    const res = await fetch('/api/presupuestos/enviar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ presupuestoId: id }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setEmailMsg({ ok: true, text: `Email enviado a ${pres?.clientes?.email}` });
+      cargar();
+    } else {
+      setEmailMsg({ ok: false, text: data.error ?? 'Error al enviar' });
+    }
+    setEnviando(false);
   }
 
   async function eliminar() {
@@ -89,6 +108,20 @@ export default function PresupuestoDetallePage() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
+          {/* Enviar por email */}
+          {pres.clientes?.email && (
+            <button onClick={enviarEmail} disabled={enviando}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-400 hover:bg-blue-500/25 text-sm font-medium transition-colors disabled:opacity-50">
+              {enviando ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              )}
+              {enviando ? 'Enviando...' : 'Enviar por email'}
+            </button>
+          )}
           {cfg.next && (
             <button onClick={() => cambiarEstado(cfg.next!)}
               className="px-4 py-2 rounded-lg bg-yellow-500 hover:bg-yellow-400 text-black font-semibold text-sm transition-colors">
@@ -109,6 +142,16 @@ export default function PresupuestoDetallePage() {
           </button>
         </div>
       </div>
+
+      {emailMsg && (
+        <div className={`mb-6 px-4 py-3 rounded-lg text-sm flex items-center gap-2 ${emailMsg.ok ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+          {emailMsg.ok
+            ? <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+            : <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          }
+          {emailMsg.text}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
