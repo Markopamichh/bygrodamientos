@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(npx next build:*)",
+      "Bash(wc:*)",
+      "Bash(npm install:*)",
+      "Bash(grep -r \"NEXT_PUBLIC_SUPABASE\" /c/Users/Administrator/OneDrive/Escritorio/FACULTAD/BYGrodamientos/.env*)",
+      "Bash(npx vercel:*)",
+      "Bash(npm run:*)",
+      "Bash(sed:*)",
+      "Bash(python -m pip install Pillow -q)",
+      "Bash(python -c \"from PIL import Image; print\\('Pillow OK'\\)\")",
+      "Bash(python3 -m pip install Pillow -q)",
+      "Bash(python3 -c \"from PIL import Image; print\\('Pillow OK'\\)\")",
+      "Bash(node:*)",
+      "Bash(npm uninstall *)",
+      "Bash(npx tsx *)",
+      "WebFetch(domain:mraccesoriosindustriales.com.ar)",
+      "Bash(del /f /q \"src\\\\lib\\\\firebase\\\\client.ts\" \"src\\\\lib\\\\firebase\\\\admin.ts\")",
+      "Bash(rmdir /s /q \"src\\\\lib\\\\firebase\")",
+      "mcp__claude_ai_Supabase__get_project_url",
+      "mcp__claude_ai_Supabase__get_publishable_keys",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s \"http://localhost:3003/_next/static/css/app/layout.css?v=1782162152844\")",
+      "Bash(where chrome *)",
+      "Bash(where \"google-chrome\")",
+      "Read(//c/Program Files/Google/Chrome/Application/**)",
+      "Bash(git add *)",
+      "Bash(~/.npm-global/bin/claude *)",
+      "Bash(npm approve-scripts *)",
+      "Bash(npx tsc *)",
+      "Bash(npx playwright *)",
+      "Read(//private/tmp/**)",
+      "Bash(npm init *)",
+      "mcp__claude_ai_Supabase__execute_sql",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__list_tables"
+    ]
+  }
+}

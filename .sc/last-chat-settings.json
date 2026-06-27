@@ -1,0 +1,5 @@
+{
+  "provider_key": "claude",
+  "model_id": "claude-sonnet-4-6",
+  "reasoning_effort": "low"
+}
