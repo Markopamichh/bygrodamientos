@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createAdminClient } from '@/lib/supabase/server';
+import { SITE_URL } from '@/lib/constants';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     if (!email) return NextResponse.json({ error: 'El cliente no tiene email registrado' }, { status: 400 });
 
     const numero = `P-${String((pres as Record<string, unknown>).numero).padStart(4, '0')}`;
-    const html = buildEmailHtml(pres as Record<string, unknown>, items as Record<string, unknown>[], numero, cliente);
+    const html = buildEmailHtml(pres as Record<string, unknown>, items as Record<string, unknown>[], numero, cliente, SITE_URL);
 
     const { error } = await resend.emails.send({
       from: 'BYG Rodamientos <onboarding@resend.dev>',
@@ -55,7 +56,8 @@ function buildEmailHtml(
   pres: Record<string, unknown>,
   items: Record<string, unknown>[],
   numero: string,
-  cliente: Record<string, string | null> | null
+  cliente: Record<string, string | null> | null,
+  siteUrl: string
 ): string {
   const clienteNombre = cliente?.razon_social ?? cliente?.nombre ?? 'Cliente';
   const fechaEmision = new Date(pres.fecha_emision as string).toLocaleDateString('es-AR');
@@ -97,8 +99,7 @@ function buildEmailHtml(
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td>
-                <p style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">BYG Rodamientos</p>
-                <p style="margin:4px 0 0;color:#ffffff80;font-size:13px;">Neuquén, Argentina</p>
+                <img src="${siteUrl}/images/Logo/logobyg1.png" alt="BYG Rodamientos" width="120" style="height:60px;width:auto;display:block;" />
               </td>
               <td align="right">
                 <p style="margin:0;color:#f59e0b;font-size:20px;font-weight:700;">${numero}</p>

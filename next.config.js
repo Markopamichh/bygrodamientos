@@ -24,6 +24,11 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  async redirects() {
+    return [
+      { source: '/admin/deposito', destination: '/admin/stock', permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

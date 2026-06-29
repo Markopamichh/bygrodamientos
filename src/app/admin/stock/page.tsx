@@ -15,6 +15,7 @@ interface ItemRow {
   stock_actual: number;
   stock_minimo: number;
   precio_venta: number | null;
+  ubicacion: string | null;
   activo: boolean;
   productos: { nombre: string } | null;
 }
@@ -26,7 +27,7 @@ export default async function StockPage({
 }) {
   const { q } = await searchParams;
   const supabase = createAdminClient();
-  const sel = 'id, codigo, fabricante, stock_actual, stock_minimo, precio_venta, activo, productos(nombre)';
+  const sel = 'id, codigo, fabricante, stock_actual, stock_minimo, precio_venta, ubicacion, activo, productos(nombre)';
 
   let items: ItemRow[] = [];
 
@@ -136,6 +137,9 @@ export default async function StockPage({
                 <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">
                   Precio venta
                 </th>
+                <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">
+                  Ubicación
+                </th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -164,6 +168,21 @@ export default async function StockPage({
                         ? `$${Number(item.precio_venta).toLocaleString('es-AR')}`
                         : '—'}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    {item.ubicacion ? (
+                      <span className="text-yellow-400 font-mono text-xs font-bold bg-yellow-500/10 px-2 py-1 rounded-lg">
+                        {item.ubicacion}
+                      </span>
+                    ) : (
+                      <Link
+                        href={`/admin/stock/${item.id}/editar`}
+                        className="text-white/20 text-xs hover:text-yellow-400 transition-colors"
+                        title="Asignar ubicación"
+                      >
+                        + Asignar
+                      </Link>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <Link

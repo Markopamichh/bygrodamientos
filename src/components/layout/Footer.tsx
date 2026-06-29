@@ -36,7 +36,7 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-bold uppercase tracking-widest text-stone-300 mb-5">Productos</h3>
             <ul className="space-y-3">
-              {categories.slice(0, 5).map((cat) => (
+              {categories.filter((cat) => !cat.isCustomOrder).map((cat) => (
                 <li key={cat.id}>
                   <Link
                     href={`/productos/${cat.slug}`}
@@ -55,8 +55,9 @@ export default function Footer() {
             <ul className="space-y-3">
               {[
                 { href: '/', label: 'Inicio' },
-                { href: '/nosotros', label: 'Sobre Nosotros' },
-                { href: '/productos', label: 'Catálogo' },
+                { href: '/nosotros', label: 'Nosotros' },
+                { href: '/productos', label: 'Productos' },
+                { href: '/marcas', label: 'Marcas' },
                 { href: '/contacto', label: 'Contacto' },
               ].map((link) => (
                 <li key={link.href}>
