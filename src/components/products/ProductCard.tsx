@@ -25,14 +25,16 @@ export default function ProductCard({ product }: ProductCardProps) {
               src={product.images[0].url}
               alt={product.images[0].alt}
               fill
-              className="object-contain p-4 group-hover:scale-105 transition-transform duration-700 ease-out-expo"
-              style={{ objectPosition: 'center center' }}
+              className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out-expo"
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               loading="lazy"
               quality={75}
             />
             {product.images[0].url.includes('ss-cnt-001c') && (
-              <div className="absolute bottom-0 right-0 w-2/5 h-2/5 bg-gradient-to-tl from-stone-50 via-stone-50/70 to-transparent pointer-events-none" />
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgb(249,250,251) 88%)' }}
+              />
             )}
           </>
         ) : (

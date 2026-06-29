@@ -165,14 +165,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     src={product.images[0].url}
                     alt={product.images[0].alt}
                     fill
-                    className="object-contain p-6"
+                    className="object-cover"
                     priority
                     quality={80}
                     sizes="(max-width: 1024px) 100vw, 50vw"
-                    style={{ objectPosition: 'center center' }}
                   />
                   {product.images[0].url.includes('ss-cnt-001c') && (
-                    <div className="absolute bottom-0 right-0 w-2/5 h-2/5 bg-gradient-to-tl from-white via-white/70 to-transparent pointer-events-none" />
+                    <div
+                      className="absolute inset-0 pointer-events-none rounded-2xl"
+                      style={{ background: 'radial-gradient(ellipse at center, transparent 50%, white 88%)' }}
+                    />
                   )}
                 </>
               ) : (
@@ -203,7 +205,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
               </p>
             )}
 
-            <p className="text-stone-600 mb-6 leading-relaxed">{product.longDescription}</p>
+            {(product.description || product.longDescription) && (
+              <p className="text-stone-600 mb-6 leading-relaxed">
+                {product.description || product.longDescription}
+              </p>
+            )}
 
             {isEncargo ? (
               <div className="flex items-center gap-2.5 mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
