@@ -62,7 +62,7 @@ export default function RootLayout({
     <html lang="es" className={`${dmSans.variable} ${spaceGrotesk.variable}`}>
       <body className={dmSans.className}>
         <Header />
-        <main className="min-h-screen">
+        <main className="min-h-screen pt-20">
           {children}
         </main>
         <Footer />

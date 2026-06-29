@@ -46,7 +46,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden bg-secondary min-h-[85vh] flex items-center">
+    <section ref={sectionRef} className="relative overflow-hidden bg-secondary min-h-[85vh] flex items-center -mt-20">
       {/* Decorative background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 -right-32 w-[500px] h-[500px] bg-primary/8 rounded-full blur-3xl" />
