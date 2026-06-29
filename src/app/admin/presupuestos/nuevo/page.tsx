@@ -6,13 +6,25 @@ import { createClient } from '@/lib/supabase/client';
 
 interface Cliente { id: string; nombre: string; razon_social: string | null; cuit_cuil: string | null; email: string | null; condicion_iva: string; }
 interface Item { descripcion: string; cantidad: number; precio_unitario: number; }
+interface NuevoCliente { nombre: string; razon_social: string; cuit_cuil: string; email: string; telefono: string; condicion_iva: string; }
 
 const DIAS_VALIDEZ = 7;
+const IVA_OPTS = ['responsable_inscripto', 'monotributista', 'consumidor_final', 'exento'] as const;
+const IVA_LABELS: Record<string, string> = {
+  responsable_inscripto: 'Responsable Inscripto',
+  monotributista: 'Monotributista',
+  consumidor_final: 'Consumidor Final',
+  exento: 'Exento',
+};
 
 export default function NuevoPresupuestoPage() {
   const router = useRouter();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [clienteId, setClienteId] = useState('');
+  const [modoCliente, setModoCliente] = useState<'existente' | 'nuevo'>('existente');
+  const [nuevoCliente, setNuevoCliente] = useState<NuevoCliente>({
+    nombre: '', razon_social: '', cuit_cuil: '', email: '', telefono: '', condicion_iva: 'responsable_inscripto',
+  });
   const [condPago, setCondPago] = useState('Contado');
   const [descuentoPct, setDescuentoPct] = useState(0);
   const [ivaPct, setIvaPct] = useState(21);
@@ -20,6 +32,10 @@ export default function NuevoPresupuestoPage() {
   const [items, setItems] = useState<Item[]>([{ descripcion: '', cantidad: 1, precio_unitario: 0 }]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function setNC(field: keyof NuevoCliente, value: string) {
+    setNuevoCliente(prev => ({ ...prev, [field]: value }));
+  }
 
   useEffect(() => {
     createClient().from('clientes').select('id, nombre, razon_social, cuit_cuil, email, condicion_iva').eq('activo', true).order('nombre')
@@ -40,16 +56,33 @@ export default function NuevoPresupuestoPage() {
   }
 
   async function handleGuardar(estado: 'borrador' | 'enviado') {
-    if (!clienteId) { setError('Seleccioná un cliente'); return; }
+    if (modoCliente === 'existente' && !clienteId) { setError('Seleccioná un cliente'); return; }
+    if (modoCliente === 'nuevo' && !nuevoCliente.nombre.trim()) { setError('Ingresá el nombre del cliente'); return; }
     if (items.every(i => !i.descripcion)) { setError('Agregá al menos un ítem'); return; }
     setLoading(true); setError(null);
 
     const sb = createClient();
+
+    // Si es cliente nuevo, crearlo primero
+    let idCliente = clienteId;
+    if (modoCliente === 'nuevo') {
+      const { data: cli, error: errCli } = await sb.from('clientes').insert({
+        nombre: nuevoCliente.nombre.trim(),
+        razon_social: nuevoCliente.razon_social.trim() || null,
+        cuit_cuil: nuevoCliente.cuit_cuil.trim() || null,
+        email: nuevoCliente.email.trim() || null,
+        telefono: nuevoCliente.telefono.trim() || null,
+        condicion_iva: nuevoCliente.condicion_iva,
+        activo: true,
+      }).select('id').single();
+      if (errCli || !cli) { setError(errCli?.message ?? 'Error al crear el cliente'); setLoading(false); return; }
+      idCliente = cli.id;
+    }
     const hoy = new Date();
     const vence = new Date(hoy); vence.setDate(hoy.getDate() + DIAS_VALIDEZ);
 
     const { data: pres, error: err1 } = await sb.from('presupuestos').insert({
-      cliente_id: clienteId,
+      cliente_id: idCliente,
       condicion_pago: condPago,
       descuento_pct: descuentoPct,
       iva_pct: ivaPct,
@@ -98,19 +131,107 @@ export default function NuevoPresupuestoPage() {
 
           {/* Cliente */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
-            <h2 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Cliente</h2>
-            <select value={clienteId} onChange={e => setClienteId(e.target.value)}
-              className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500/50 mb-3">
-              <option value="">— Seleccioná un cliente —</option>
-              {clientes.map(c => (
-                <option key={c.id} value={c.id}>{c.razon_social ?? c.nombre}{c.cuit_cuil ? ` (${c.cuit_cuil})` : ''}</option>
-              ))}
-            </select>
-            {clienteSelec && (
-              <div className="bg-[#111] rounded-lg px-4 py-3 space-y-1">
-                <p className="text-white/70 text-sm font-medium">{clienteSelec.razon_social ?? clienteSelec.nombre}</p>
-                {clienteSelec.cuit_cuil && <p className="text-white/40 text-xs">CUIT/CUIL: {clienteSelec.cuit_cuil}</p>}
-                {clienteSelec.email && <p className="text-white/40 text-xs">{clienteSelec.email}</p>}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white font-semibold text-sm uppercase tracking-wider">Cliente</h2>
+              <div className="flex rounded-lg overflow-hidden border border-white/10 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setModoCliente('existente')}
+                  className={`px-3 py-1.5 transition-colors ${modoCliente === 'existente' ? 'bg-yellow-500 text-black' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                >
+                  Existente
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModoCliente('nuevo')}
+                  className={`px-3 py-1.5 transition-colors ${modoCliente === 'nuevo' ? 'bg-yellow-500 text-black' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                >
+                  + Nuevo
+                </button>
+              </div>
+            </div>
+
+            {modoCliente === 'existente' ? (
+              <>
+                <select value={clienteId} onChange={e => setClienteId(e.target.value)}
+                  className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500/50 mb-3">
+                  <option value="">— Seleccioná un cliente —</option>
+                  {clientes.map(c => (
+                    <option key={c.id} value={c.id}>{c.razon_social ?? c.nombre}{c.cuit_cuil ? ` (${c.cuit_cuil})` : ''}</option>
+                  ))}
+                </select>
+                {clienteSelec && (
+                  <div className="bg-[#111] rounded-lg px-4 py-3 space-y-1">
+                    <p className="text-white/70 text-sm font-medium">{clienteSelec.razon_social ?? clienteSelec.nombre}</p>
+                    {clienteSelec.cuit_cuil && <p className="text-white/40 text-xs">CUIT/CUIL: {clienteSelec.cuit_cuil}</p>}
+                    {clienteSelec.email && <p className="text-white/40 text-xs">{clienteSelec.email}</p>}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">Nombre *</label>
+                    <input
+                      value={nuevoCliente.nombre}
+                      onChange={e => setNC('nombre', e.target.value)}
+                      placeholder="Juan García"
+                      className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-500/50 placeholder-white/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">Razón social</label>
+                    <input
+                      value={nuevoCliente.razon_social}
+                      onChange={e => setNC('razon_social', e.target.value)}
+                      placeholder="Empresa S.A."
+                      className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-500/50 placeholder-white/20"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">CUIT / CUIL</label>
+                    <input
+                      value={nuevoCliente.cuit_cuil}
+                      onChange={e => setNC('cuit_cuil', e.target.value)}
+                      placeholder="20-12345678-9"
+                      className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-500/50 placeholder-white/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">Condición IVA</label>
+                    <select
+                      value={nuevoCliente.condicion_iva}
+                      onChange={e => setNC('condicion_iva', e.target.value)}
+                      className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-500/50"
+                    >
+                      {IVA_OPTS.map(o => <option key={o} value={o}>{IVA_LABELS[o]}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={nuevoCliente.email}
+                      onChange={e => setNC('email', e.target.value)}
+                      placeholder="correo@empresa.com"
+                      className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-500/50 placeholder-white/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">Teléfono</label>
+                    <input
+                      value={nuevoCliente.telefono}
+                      onChange={e => setNC('telefono', e.target.value)}
+                      placeholder="299 4123456"
+                      className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-yellow-500/50 placeholder-white/20"
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>
