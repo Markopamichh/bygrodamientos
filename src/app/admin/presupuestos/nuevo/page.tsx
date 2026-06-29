@@ -21,10 +21,10 @@ export default function NuevoPresupuestoPage() {
   const router = useRouter();
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [clienteId, setClienteId] = useState('');
-  const [modoCliente, setModoCliente] = useState<'existente' | 'nuevo'>('existente');
   const [nuevoCliente, setNuevoCliente] = useState<NuevoCliente>({
     nombre: '', razon_social: '', cuit_cuil: '', email: '', telefono: '', condicion_iva: 'responsable_inscripto',
   });
+  const esNuevoCliente = clienteId === '__nuevo__';
   const [condPago, setCondPago] = useState('Contado');
   const [descuentoPct, setDescuentoPct] = useState(0);
   const [ivaPct, setIvaPct] = useState(21);
@@ -35,6 +35,12 @@ export default function NuevoPresupuestoPage() {
 
   function setNC(field: keyof NuevoCliente, value: string) {
     setNuevoCliente(prev => ({ ...prev, [field]: value }));
+  }
+
+  function handleClienteSelect(val: string) {
+    setClienteId(val);
+    // Pre-rellenar nombre si escribe algo antes de elegir
+    if (val !== '__nuevo__') setNuevoCliente({ nombre: '', razon_social: '', cuit_cuil: '', email: '', telefono: '', condicion_iva: 'responsable_inscripto' });
   }
 
   useEffect(() => {
@@ -56,8 +62,8 @@ export default function NuevoPresupuestoPage() {
   }
 
   async function handleGuardar(estado: 'borrador' | 'enviado') {
-    if (modoCliente === 'existente' && !clienteId) { setError('Seleccioná un cliente'); return; }
-    if (modoCliente === 'nuevo' && !nuevoCliente.nombre.trim()) { setError('Ingresá el nombre del cliente'); return; }
+    if (!clienteId) { setError('Seleccioná un cliente'); return; }
+    if (esNuevoCliente && !nuevoCliente.nombre.trim()) { setError('Ingresá el nombre del cliente'); return; }
     if (items.every(i => !i.descripcion)) { setError('Agregá al menos un ítem'); return; }
     setLoading(true); setError(null);
 
@@ -65,7 +71,7 @@ export default function NuevoPresupuestoPage() {
 
     // Si es cliente nuevo, crearlo primero
     let idCliente = clienteId;
-    if (modoCliente === 'nuevo') {
+    if (esNuevoCliente) {
       const { data: cli, error: errCli } = await sb.from('clientes').insert({
         nombre: nuevoCliente.nombre.trim(),
         razon_social: nuevoCliente.razon_social.trim() || null,
@@ -131,45 +137,34 @@ export default function NuevoPresupuestoPage() {
 
           {/* Cliente */}
           <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white font-semibold text-sm uppercase tracking-wider">Cliente</h2>
-              <div className="flex rounded-lg overflow-hidden border border-white/10 text-xs font-medium">
-                <button
-                  type="button"
-                  onClick={() => setModoCliente('existente')}
-                  className={`px-3 py-1.5 transition-colors ${modoCliente === 'existente' ? 'bg-yellow-500 text-black' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-                >
-                  Existente
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setModoCliente('nuevo')}
-                  className={`px-3 py-1.5 transition-colors ${modoCliente === 'nuevo' ? 'bg-yellow-500 text-black' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-                >
-                  + Nuevo
-                </button>
-              </div>
-            </div>
+            <h2 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Cliente</h2>
 
-            {modoCliente === 'existente' ? (
-              <>
-                <select value={clienteId} onChange={e => setClienteId(e.target.value)}
-                  className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500/50 mb-3">
-                  <option value="">— Seleccioná un cliente —</option>
-                  {clientes.map(c => (
-                    <option key={c.id} value={c.id}>{c.razon_social ?? c.nombre}{c.cuit_cuil ? ` (${c.cuit_cuil})` : ''}</option>
-                  ))}
-                </select>
-                {clienteSelec && (
-                  <div className="bg-[#111] rounded-lg px-4 py-3 space-y-1">
-                    <p className="text-white/70 text-sm font-medium">{clienteSelec.razon_social ?? clienteSelec.nombre}</p>
-                    {clienteSelec.cuit_cuil && <p className="text-white/40 text-xs">CUIT/CUIL: {clienteSelec.cuit_cuil}</p>}
-                    {clienteSelec.email && <p className="text-white/40 text-xs">{clienteSelec.email}</p>}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="space-y-3">
+            <select
+              value={clienteId}
+              onChange={e => handleClienteSelect(e.target.value)}
+              className="w-full bg-[#111] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500/50 mb-3"
+            >
+              <option value="">— Seleccioná un cliente —</option>
+              <option value="__nuevo__">+ Nuevo cliente</option>
+              {clientes.length > 0 && <option disabled>──────────────</option>}
+              {clientes.map(c => (
+                <option key={c.id} value={c.id}>{c.razon_social ?? c.nombre}{c.cuit_cuil ? ` (${c.cuit_cuil})` : ''}</option>
+              ))}
+            </select>
+
+            {/* Cliente existente seleccionado */}
+            {clienteSelec && (
+              <div className="bg-[#111] rounded-lg px-4 py-3 space-y-1">
+                <p className="text-white/70 text-sm font-medium">{clienteSelec.razon_social ?? clienteSelec.nombre}</p>
+                {clienteSelec.cuit_cuil && <p className="text-white/40 text-xs">CUIT/CUIL: {clienteSelec.cuit_cuil}</p>}
+                {clienteSelec.email && <p className="text-white/40 text-xs">{clienteSelec.email}</p>}
+              </div>
+            )}
+
+            {/* Formulario cliente nuevo */}
+            {esNuevoCliente && (
+              <div className="space-y-3 border border-yellow-500/20 rounded-lg p-4 bg-yellow-500/5">
+                <p className="text-yellow-400 text-xs font-semibold uppercase tracking-wider">Datos del nuevo cliente</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-white/40 mb-1">Nombre *</label>

@@ -167,7 +167,7 @@ export default function ContactForm() {
           {...register('isEmergency')}
           type="checkbox"
           id="isEmergency"
-          className="h-4 w-4 text-primary focus:ring-primary border-stone-300 rounded"
+          className="h-5 w-5 text-primary focus:ring-primary border-stone-300 rounded cursor-pointer"
         />
         <label htmlFor="isEmergency" className="ml-2 block text-sm text-stone-600">
           Es una emergencia (requiere atención inmediata)

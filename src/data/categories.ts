@@ -7,7 +7,7 @@ export const categories: Category[] = [
     slug: 'rodamientos',
     description: 'Amplia gama de rodamientos para aplicaciones industriales',
     longDescription: 'Ofrecemos una completa línea de rodamientos industriales para diversas aplicaciones: motores eléctricos, bombas, reductores, ventiladores y maquinaria en general. Incluye rodamientos rígidos de bolas, de rodillos, axiales, de contacto angular y más.',
-    image: '/images/categories/rodamientos.jpg',
+    image: '/images/categories/rodamientos.webp',
     subcategories: [
       { id: 'rigidos-bolas', name: 'Rígidos de Bolas', slug: 'rigidos-bolas' },
       { id: 'bolas-rotula', name: 'Bolas a Rótula', slug: 'bolas-rotula' },

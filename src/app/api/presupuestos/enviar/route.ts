@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, createAuthClient } from '@/lib/supabase/server';
 import { SITE_URL } from '@/lib/constants';
 import { generatePresupuestoPdf } from '@/lib/pdf/presupuestoPdf';
 
 export async function POST(req: NextRequest) {
   try {
+    const authClient = await createAuthClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
     const resend = new Resend(process.env.RESEND_API_KEY);
     const { presupuestoId } = await req.json();
     if (!presupuestoId) return NextResponse.json({ error: 'Falta presupuestoId' }, { status: 400 });

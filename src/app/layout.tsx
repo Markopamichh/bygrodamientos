@@ -53,6 +53,38 @@ export const metadata: Metadata = {
   },
 };
 
+const localBusinessJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'BYG Rodamientos',
+  description: 'Distribuidora de rodamientos, retenes, correas y componentes industriales en Neuquén, Argentina.',
+  url: SITE_URL,
+  telephone: '+54-299-446-2546',
+  email: 'bygrodamientos@gmail.com',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Collon Cura 240',
+    addressLocality: 'Neuquén',
+    addressRegion: 'Neuquén',
+    postalCode: '8300',
+    addressCountry: 'AR',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: -38.9516,
+    longitude: -68.0591,
+  },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+      opens: '08:00',
+      closes: '18:00',
+    },
+  ],
+  sameAs: [`https://wa.me/5492994019699`],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -60,6 +92,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${dmSans.variable} ${spaceGrotesk.variable}`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
+        />
+      </head>
       <body className={dmSans.className}>
         <Header />
         <main className="min-h-screen pt-20">

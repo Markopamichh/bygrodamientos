@@ -46,7 +46,7 @@ export default function ContactoPage() {
           <h2 className="text-2xl font-bold text-secondary mb-6 text-center">
             Nuestra Ubicación
           </h2>
-          <div className="bg-gray-100 rounded-lg overflow-hidden" style={{ height: '400px' }}>
+          <div className="bg-gray-100 rounded-lg overflow-hidden h-64 sm:h-80 md:h-[400px]">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3102.8!2d-68.0591!3d-38.9516!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzjCsDU3JzA1LjgiUyA2OMKwMDMnMzIuOCJX!5e0!3m2!1ses!2sar!4v1234567890"
               width="100%"
