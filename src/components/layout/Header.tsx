@@ -33,7 +33,7 @@ export default function Header() {
     <header className={`fixed top-0 inset-x-0 z-40 transition-all duration-500 ease-out-expo ${
       scrolled ? 'glass-header shadow-sm' : 'bg-transparent'
     }`}>
-      <nav className="py-4">
+      <nav className="py-2 md:py-3">
         <Container>
           <div className="flex justify-between items-center">
 
@@ -45,7 +45,7 @@ export default function Header() {
                 width={160}
                 height={180}
                 priority
-                className="h-20 w-auto object-contain"
+                className="h-12 md:h-16 w-auto object-contain"
               />
             </Link>
 

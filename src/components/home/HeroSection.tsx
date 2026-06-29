@@ -46,7 +46,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden bg-secondary min-h-[85vh] flex items-center -mt-20">
+    <section ref={sectionRef} className="relative overflow-hidden bg-secondary min-h-[85vh] flex items-center -mt-16 md:-mt-[88px]">
       {/* Decorative background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 -right-32 w-[500px] h-[500px] bg-primary/8 rounded-full blur-3xl" />
@@ -134,7 +134,7 @@ export default function HeroSection() {
       </Container>
 
       {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-56 bg-gradient-to-t from-white to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-10 md:h-16 bg-gradient-to-t from-white to-transparent" />
     </section>
   );
 }

@@ -100,7 +100,7 @@ export default function RootLayout({
       </head>
       <body className={dmSans.className}>
         <Header />
-        <main className="min-h-screen pt-20">
+        <main className="min-h-screen pt-16 md:pt-[88px]">
           {children}
         </main>
         <Footer />
