@@ -160,16 +160,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <div>
             <div className="aspect-square bg-white border border-stone-200 rounded-2xl relative overflow-hidden flex items-center justify-center">
               {product.images.length > 0 ? (
-                <Image
-                  src={product.images[0].url}
-                  alt={product.images[0].alt}
-                  fill
-                  className="object-contain p-6"
-                  priority
-                  quality={80}
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  style={{ objectPosition: 'center center' }}
-                />
+                <>
+                  <Image
+                    src={product.images[0].url}
+                    alt={product.images[0].alt}
+                    fill
+                    className="object-contain p-6"
+                    priority
+                    quality={80}
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    style={{ objectPosition: 'center center' }}
+                  />
+                  {product.images[0].url.includes('ss-cnt-001c') && (
+                    <div className="absolute bottom-0 right-0 w-2/5 h-2/5 bg-gradient-to-tl from-white via-white/70 to-transparent pointer-events-none" />
+                  )}
+                </>
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <svg className="w-24 h-24 text-stone-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
