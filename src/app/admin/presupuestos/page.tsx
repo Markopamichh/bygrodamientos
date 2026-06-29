@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
+import { fetchListaPresupuestos } from './actions';
 
 interface Presupuesto {
   id: string;
@@ -28,16 +28,8 @@ export default function PresupuestosPage() {
   const [filtroEstado, setFiltroEstado] = useState('');
 
   useEffect(() => {
-    async function cargar() {
-      const sb = createClient();
-      const { data } = await sb
-        .from('presupuestos')
-        .select('id, numero, estado, fecha_emision, fecha_vencimiento, total, clientes(nombre, razon_social)')
-        .order('numero', { ascending: false });
-      setPresupuestos((data as unknown as Presupuesto[]) ?? []);
-      setLoading(false);
-    }
-    cargar();
+    fetchListaPresupuestos()
+      .then(data => { setPresupuestos(data as unknown as Presupuesto[]); setLoading(false); });
   }, []);
 
   const filtrados = presupuestos.filter(p => !filtroEstado || p.estado === filtroEstado);

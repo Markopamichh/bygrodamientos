@@ -82,3 +82,43 @@ export async function crearPresupuesto(input: NuevoPresupuestoInput): Promise<{ 
   if (err2) return { error: err2.message };
   return { id: pres.id };
 }
+
+export async function fetchListaPresupuestos() {
+  const sb = createAdminClient();
+  const { data } = await sb
+    .from('presupuestos')
+    .select('id, numero, estado, fecha_emision, fecha_vencimiento, total, clientes(nombre, razon_social)')
+    .order('numero', { ascending: false });
+  return data ?? [];
+}
+
+export async function fetchPresupuesto(id: string) {
+  const sb = createAdminClient();
+  const [{ data: pres }, { data: items }] = await Promise.all([
+    sb
+      .from('presupuestos')
+      .select('*, clientes(nombre, razon_social, cuit_cuil, email, telefono, condicion_iva)')
+      .eq('id', id)
+      .single(),
+    sb
+      .from('presupuesto_items')
+      .select('*')
+      .eq('presupuesto_id', id)
+      .order('orden'),
+  ]);
+  return { pres, items: items ?? [] };
+}
+
+export async function actualizarEstadoPresupuesto(id: string, estado: string) {
+  const sb = createAdminClient();
+  const { error } = await sb.from('presupuestos').update({ estado }).eq('id', id);
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
+export async function eliminarPresupuesto(id: string) {
+  const sb = createAdminClient();
+  const { error } = await sb.from('presupuestos').delete().eq('id', id);
+  if (error) return { error: error.message };
+  return { ok: true };
+}

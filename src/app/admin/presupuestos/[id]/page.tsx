@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { fetchPresupuesto, actualizarEstadoPresupuesto, eliminarPresupuesto } from '../actions';
 
 interface Item { id: string; descripcion: string; cantidad: number; precio_unitario: number; subtotal: number; }
 interface Presupuesto {
@@ -37,11 +37,7 @@ export default function PresupuestoDetallePage() {
   const [emailMsg, setEmailMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   async function cargar() {
-    const sb = createClient();
-    const [{ data: p }, { data: it }] = await Promise.all([
-      sb.from('presupuestos').select('*, clientes(nombre, razon_social, cuit_cuil, email, telefono, condicion_iva)').eq('id', id).single(),
-      sb.from('presupuesto_items').select('*').eq('presupuesto_id', id).order('orden'),
-    ]);
+    const { pres: p, items: it } = await fetchPresupuesto(id);
     setPres(p as unknown as Presupuesto);
     setItems((it as Item[]) ?? []);
     setLoading(false);
@@ -50,7 +46,7 @@ export default function PresupuestoDetallePage() {
   useEffect(() => { cargar(); }, [id]);
 
   async function cambiarEstado(nuevo: string) {
-    await createClient().from('presupuestos').update({ estado: nuevo }).eq('id', id);
+    await actualizarEstadoPresupuesto(id, nuevo);
     cargar();
   }
 
@@ -73,7 +69,7 @@ export default function PresupuestoDetallePage() {
 
   async function eliminar() {
     if (!confirm('¿Eliminar este presupuesto?')) return;
-    await createClient().from('presupuestos').delete().eq('id', id);
+    await eliminarPresupuesto(id);
     router.push('/admin/presupuestos');
   }
 
