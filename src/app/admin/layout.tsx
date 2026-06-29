@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import AdminShell from '@/components/admin/AdminShell';
 import { createAuthClient, createAdminClient } from '@/lib/supabase/server';
 
@@ -6,6 +8,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Segunda capa: si el middleware no capturó la request, el layout redirige
+  if (!user) {
+    const headersList = await headers();
+    const pathname = headersList.get('x-invoke-path') ?? '';
+    if (!pathname.includes('/admin/login')) {
+      redirect('/admin/login');
+    }
+  }
 
   let lowStockCount = 0;
   if (user) {
