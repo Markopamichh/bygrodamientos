@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { fetchClientes, insertCliente, updateCliente } from './actions';
 
 interface Cliente {
   id: string;
@@ -35,9 +35,8 @@ export default function ClientesPage() {
   const [q, setQ] = useState('');
 
   async function cargar() {
-    const sb = createClient();
-    const { data } = await sb.from('clientes').select('*').eq('activo', true).order('nombre');
-    setClientes((data as Cliente[]) ?? []);
+    const data = await fetchClientes();
+    setClientes(data as Cliente[]);
     setLoading(false);
   }
 
@@ -171,11 +170,10 @@ function ClienteModal({ cliente, onClose }: { cliente?: Cliente; onClose: () => 
       direccion: (fd.get('direccion') as string) || null,
       notas: (fd.get('notas') as string) || null,
     };
-    const sb = createClient();
-    const { error: err } = cliente
-      ? await sb.from('clientes').update(payload).eq('id', cliente.id)
-      : await sb.from('clientes').insert(payload);
-    if (err) { setError(err.message); setLoading(false); return; }
+    const result = cliente
+      ? await updateCliente(cliente.id, payload)
+      : await insertCliente(payload);
+    if (result.error) { setError(result.error); setLoading(false); return; }
     onClose();
   }
 
