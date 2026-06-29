@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createAdminClient } from '@/lib/supabase/server';
 import { SITE_URL } from '@/lib/constants';
+import { generatePresupuestoPdf } from '@/lib/pdf/presupuestoPdf';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,11 +32,22 @@ export async function POST(req: NextRequest) {
     const numero = `P-${String((pres as Record<string, unknown>).numero).padStart(4, '0')}`;
     const html = buildEmailHtml(pres as Record<string, unknown>, items as Record<string, unknown>[], numero, cliente, SITE_URL);
 
+    const pdfBuffer = await generatePresupuestoPdf({
+      pres: pres as Parameters<typeof generatePresupuestoPdf>[0]['pres'],
+      items: items as Parameters<typeof generatePresupuestoPdf>[0]['items'],
+      numero,
+      cliente: cliente as Parameters<typeof generatePresupuestoPdf>[0]['cliente'],
+    });
+
     const { error } = await resend.emails.send({
       from: 'BYG Rodamientos <onboarding@resend.dev>',
       to: [email],
       subject: `Presupuesto ${numero} — BYG Rodamientos`,
       html,
+      attachments: [{
+        filename: `Presupuesto-${numero}.pdf`,
+        content: pdfBuffer,
+      }],
     });
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
