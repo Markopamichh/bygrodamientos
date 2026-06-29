@@ -75,7 +75,6 @@ export async function crearPresupuesto(input: NuevoPresupuestoInput): Promise<{ 
       descripcion: item.descripcion,
       cantidad: item.cantidad,
       precio_unitario: item.precio_unitario,
-      subtotal: item.cantidad * item.precio_unitario,
       orden: item.orden,
     }))
   );
