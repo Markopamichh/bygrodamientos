@@ -3,10 +3,9 @@ import { Resend } from 'resend';
 import { createAdminClient } from '@/lib/supabase/server';
 import { SITE_URL } from '@/lib/constants';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: NextRequest) {
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     const { presupuestoId } = await req.json();
     if (!presupuestoId) return NextResponse.json({ error: 'Falta presupuestoId' }, { status: 400 });
 
