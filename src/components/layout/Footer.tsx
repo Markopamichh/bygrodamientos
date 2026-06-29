@@ -137,6 +137,9 @@ export default function Footer() {
         {/* Copyright */}
         <div className="mt-8 pt-8 border-t border-stone-800 flex flex-col items-center gap-2 text-sm text-stone-600 text-center">
           <p>&copy; {currentYear} BYG Rodamientos. Todos los derechos reservados.</p>
+          <Link href="/privacidad" className="hover:text-stone-400 transition-colors duration-300">
+            Política de Privacidad
+          </Link>
           <a
             href="https://portfoliomarko.vercel.app/"
             target="_blank"
