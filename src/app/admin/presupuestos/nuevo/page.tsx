@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { crearCliente } from '../actions';
+import { crearCliente, crearPresupuesto } from '../actions';
+
 
 interface Cliente { id: string; nombre: string; razon_social: string | null; cuit_cuil: string | null; email: string | null; condicion_iva: string; }
 interface Item { descripcion: string; cantidad: number; precio_unitario: number; }
@@ -68,8 +69,6 @@ export default function NuevoPresupuestoPage() {
     if (items.every(i => !i.descripcion)) { setError('Agregá al menos un ítem'); return; }
     setLoading(true); setError(null);
 
-    const sb = createClient();
-
     // Si es cliente nuevo, crearlo primero via server action (admin client)
     let idCliente = clienteId;
     if (esNuevoCliente) {
@@ -77,37 +76,32 @@ export default function NuevoPresupuestoPage() {
       if ('error' in result) { setError(result.error); setLoading(false); return; }
       idCliente = result.id;
     }
+
     const hoy = new Date();
     const vence = new Date(hoy); vence.setDate(hoy.getDate() + DIAS_VALIDEZ);
 
-    const { data: pres, error: err1 } = await sb.from('presupuestos').insert({
-      cliente_id: idCliente,
-      condicion_pago: condPago,
-      descuento_pct: descuentoPct,
-      iva_pct: ivaPct,
-      notas: notas || null,
+    const result = await crearPresupuesto({
+      clienteId: idCliente,
+      condicionPago: condPago,
+      descuentoPct,
+      ivaPct,
+      notas,
       estado,
       subtotal,
-      descuento_monto: descuentoMonto,
-      iva_monto: ivaMonto,
+      descuentoMonto,
+      ivaMonto,
       total,
-      fecha_vencimiento: vence.toISOString().split('T')[0],
-    }).select('id').single();
-
-    if (err1 || !pres) { setError(err1?.message ?? 'Error al crear presupuesto'); setLoading(false); return; }
-
-    const { error: err2 } = await sb.from('presupuesto_items').insert(
-      items.filter(i => i.descripcion).map((item, idx) => ({
-        presupuesto_id: pres.id,
+      fechaVencimiento: vence.toISOString().split('T')[0],
+      items: items.filter(i => i.descripcion).map((item, idx) => ({
         descripcion: item.descripcion,
         cantidad: item.cantidad,
         precio_unitario: item.precio_unitario,
         orden: idx,
-      }))
-    );
+      })),
+    });
 
-    if (err2) { setError(err2.message); setLoading(false); return; }
-    router.push(`/admin/presupuestos/${pres.id}`);
+    if ('error' in result) { setError(result.error); setLoading(false); return; }
+    router.push(`/admin/presupuestos/${result.id}`);
   }
 
   const clienteSelec = clientes.find(c => c.id === clienteId);
