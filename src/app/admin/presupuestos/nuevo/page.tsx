@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { crearCliente } from '../actions';
 
 interface Cliente { id: string; nombre: string; razon_social: string | null; cuit_cuil: string | null; email: string | null; condicion_iva: string; }
 interface Item { descripcion: string; cantidad: number; precio_unitario: number; }
@@ -69,20 +70,12 @@ export default function NuevoPresupuestoPage() {
 
     const sb = createClient();
 
-    // Si es cliente nuevo, crearlo primero
+    // Si es cliente nuevo, crearlo primero via server action (admin client)
     let idCliente = clienteId;
     if (esNuevoCliente) {
-      const { data: cli, error: errCli } = await sb.from('clientes').insert({
-        nombre: nuevoCliente.nombre.trim(),
-        razon_social: nuevoCliente.razon_social.trim() || null,
-        cuit_cuil: nuevoCliente.cuit_cuil.trim() || null,
-        email: nuevoCliente.email.trim() || null,
-        telefono: nuevoCliente.telefono.trim() || null,
-        condicion_iva: nuevoCliente.condicion_iva,
-        activo: true,
-      }).select('id').single();
-      if (errCli || !cli) { setError(errCli?.message ?? 'Error al crear el cliente'); setLoading(false); return; }
-      idCliente = cli.id;
+      const result = await crearCliente(nuevoCliente);
+      if ('error' in result) { setError(result.error); setLoading(false); return; }
+      idCliente = result.id;
     }
     const hoy = new Date();
     const vence = new Date(hoy); vence.setDate(hoy.getDate() + DIAS_VALIDEZ);
