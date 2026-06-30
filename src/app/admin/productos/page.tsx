@@ -21,7 +21,7 @@ export default async function ProductosPage({
   const { q, tab = 'stock', categoria } = await searchParams;
   const supabase = createAdminClient();
 
-  const [{ data: stockRaw }, { data: encargoRaw }, { data: categoriasRaw }] = await Promise.all([
+  const [{ data: stockRaw }, { data: encargoRaw }] = await Promise.all([
     supabase
       .from('productos')
       .select('id, nombre, stock, precio, imagen_url, activo, categoria_nombre, subcategoria')
@@ -34,7 +34,6 @@ export default async function ProductosPage({
       .eq('tipo_disponibilidad', 'encargo')
       .order('categoria_nombre')
       .order('nombre'),
-    supabase.from('categorias').select('id, nombre').order('nombre'),
   ]);
 
   // Filtrar por búsqueda
@@ -46,10 +45,20 @@ export default async function ProductosPage({
     );
   };
 
-  const productosStock = filtrar(stockRaw ?? []);
+  const productosStock = filtrar(stockRaw ?? []).filter(
+    (p) => !categoria || p.categoria_nombre === categoria
+  );
   const productosEncargo = filtrar(encargoRaw ?? []).filter(
     (p) => !categoria || p.categoria_nombre === categoria
   );
+
+  // Agrupar stock por categoría
+  const stockAgrupado: Record<string, typeof productosStock> = {};
+  for (const p of productosStock) {
+    const cat = p.categoria_nombre ?? 'Sin categoría';
+    if (!stockAgrupado[cat]) stockAgrupado[cat] = [];
+    stockAgrupado[cat].push(p);
+  }
 
   // Agrupar encargo por categoría
   const encargoAgrupado: Record<string, typeof productosEncargo> = {};
@@ -58,8 +67,6 @@ export default async function ProductosPage({
     if (!encargoAgrupado[cat]) encargoAgrupado[cat] = [];
     encargoAgrupado[cat].push(p);
   }
-
-  const categorias = (categoriasRaw ?? []).map((c) => ({ id: c.id as string, nombre: c.nombre as string }));
 
   return (
     <div className="p-6 md:p-8">
@@ -135,18 +142,19 @@ export default async function ProductosPage({
           placeholder="Buscar por nombre o categoría..."
           className="flex-1 min-w-48 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-yellow-500/50"
         />
-        {tab === 'encargo' && (
-          <select
-            name="categoria"
-            defaultValue={categoria}
-            className="bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2.5 text-white/80 text-sm focus:outline-none focus:border-yellow-500/50"
-          >
-            <option value="">Todas las categorías</option>
-            {Object.keys(encargoAgrupado).sort().map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        )}
+        <select
+          name="categoria"
+          defaultValue={categoria}
+          className="bg-[#1a1a1a] border border-white/10 rounded-lg px-3 py-2.5 text-white/80 text-sm focus:outline-none focus:border-yellow-500/50"
+        >
+          <option value="">Todas las categorías</option>
+          {(tab === 'encargo'
+            ? Object.keys(encargoAgrupado)
+            : Object.keys(stockAgrupado)
+          ).sort().map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
         <button type="submit" className="bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 px-4 py-2.5 rounded-lg text-sm transition-colors">
           Buscar
         </button>
@@ -159,70 +167,83 @@ export default async function ProductosPage({
 
       {/* ── TAB STOCK ── */}
       {tab !== 'encargo' && (
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider">Producto</th>
-                  <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden md:table-cell">Categoría</th>
-                  <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider">Stock</th>
-                  <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">Precio</th>
-                  <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider">Estado</th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {productosStock.map((p) => (
-                  <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#222] border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
-                          {p.imagen_url ? (
-                            <Image src={p.imagen_url} alt={p.nombre} width={40} height={40} className="object-contain w-full h-full" />
-                          ) : (
-                            <svg className="w-5 h-5 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                            </svg>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-white/80 text-sm line-clamp-1 max-w-xs">{p.nombre}</p>
-                          {p.subcategoria && <p className="text-white/30 text-xs">{p.subcategoria}</p>}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 hidden md:table-cell">
-                      <span className="text-white/40 text-sm">{p.categoria_nombre ?? '—'}</span>
-                    </td>
-                    <td className="px-4 py-3"><StockBadge stock={p.stock} /></td>
-                    <td className="px-4 py-3 hidden sm:table-cell">
-                      <span className="text-white/60 text-sm">
-                        {p.precio != null ? `$${Number(p.precio).toLocaleString('es-AR')}` : '—'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3"><ProductToggle id={p.id} activo={p.activo} /></td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1">
-                        <Link href={`/admin/productos/${p.id}/editar`} className="p-1.5 rounded text-white/30 hover:text-yellow-400 hover:bg-yellow-400/10 transition-colors">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-                          </svg>
-                        </Link>
-                        <DeleteButton id={p.id} nombre={p.nombre} />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {productosStock.length === 0 && (
-            <div className="py-16 text-center">
+        <div className="space-y-4">
+          {Object.keys(stockAgrupado).length === 0 && (
+            <div className="bg-[#1a1a1a] border border-white/10 rounded-xl py-16 text-center">
               <p className="text-white/30 text-sm mb-4">No se encontraron productos</p>
               <Link href="/admin/productos/nuevo" className="text-yellow-400 hover:text-yellow-300 text-sm transition-colors">Crear el primero →</Link>
             </div>
           )}
+
+          {Object.entries(stockAgrupado)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([cat, prods]) => (
+              <div key={cat} className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
+                {/* Cabecera de categoría */}
+                <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    <h2 className="text-white font-semibold text-sm">{cat}</h2>
+                  </div>
+                  <span className="text-white/30 text-xs">{prods.length} producto{prods.length !== 1 ? 's' : ''}</span>
+                </div>
+
+                {/* Tabla de productos de esta categoría */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-white/5">
+                        <th className="text-left px-5 py-2.5 text-xs text-white/30 font-medium uppercase tracking-wider">Producto</th>
+                        <th className="text-left px-4 py-2.5 text-xs text-white/30 font-medium uppercase tracking-wider">Stock</th>
+                        <th className="text-left px-4 py-2.5 text-xs text-white/30 font-medium uppercase tracking-wider hidden sm:table-cell">Precio</th>
+                        <th className="text-left px-4 py-2.5 text-xs text-white/30 font-medium uppercase tracking-wider">Estado</th>
+                        <th className="px-4 py-2.5" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {prods.map((p) => (
+                        <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-lg bg-[#222] border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                                {p.imagen_url ? (
+                                  <Image src={p.imagen_url} alt={p.nombre} width={36} height={36} className="object-contain w-full h-full" />
+                                ) : (
+                                  <svg className="w-4 h-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                  </svg>
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-white/80 text-sm line-clamp-1 max-w-xs">{p.nombre}</p>
+                                {p.subcategoria && <p className="text-white/30 text-xs">{p.subcategoria}</p>}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3"><StockBadge stock={p.stock} /></td>
+                          <td className="px-4 py-3 hidden sm:table-cell">
+                            <span className="text-white/60 text-sm">
+                              {p.precio != null ? `$${Number(p.precio).toLocaleString('es-AR')}` : '—'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3"><ProductToggle id={p.id} activo={p.activo} /></td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              <Link href={`/admin/productos/${p.id}/editar`} className="p-1.5 rounded text-white/30 hover:text-yellow-400 hover:bg-yellow-400/10 transition-colors">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                                </svg>
+                              </Link>
+                              <DeleteButton id={p.id} nombre={p.nombre} />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
         </div>
       )}
 

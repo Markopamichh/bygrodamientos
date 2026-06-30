@@ -8,6 +8,13 @@ interface ProductCardProps {
   product: Product;
 }
 
+const IMAGE_FIT: Record<string, string> = {
+  'motorreductores':        'object-contain scale-[1.6]',
+  'motores-electricos':     'object-contain scale-[1.35]',
+  'mangueras-industriales': 'object-contain scale-[1.25]',
+  'retenes':                'object-cover',
+};
+
 export default function ProductCard({ product }: ProductCardProps) {
   const isEncargo = product.availability === 'encargo';
 
@@ -25,17 +32,11 @@ export default function ProductCard({ product }: ProductCardProps) {
               src={product.images[0].url}
               alt={product.images[0].alt}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out-expo"
+              className={`${IMAGE_FIT[product.category] ?? 'object-contain scale-[1.18]'} group-hover:scale-[1.05] transition-transform duration-700 ease-out-expo`}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               loading="lazy"
               quality={75}
             />
-            {product.images[0].url.includes('ss-cnt-001c') && (
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgb(249,250,251) 88%)' }}
-              />
-            )}
           </>
         ) : (
           <div className="flex items-center justify-center h-full">
@@ -45,22 +46,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
 
-        {/* Availability badge — top-right corner over image */}
-        <div className="absolute top-2 right-2">
-          {isEncargo ? (
-            <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-200 text-xs font-semibold px-2 py-1 rounded-lg">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
-              </svg>
-              Por encargo
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2 py-1 rounded-lg">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-              En stock
-            </span>
-          )}
-        </div>
       </div>
 
       <div className="p-5">
