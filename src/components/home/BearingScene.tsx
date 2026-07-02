@@ -6,7 +6,8 @@ import { useGLTF, OrbitControls, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
 function BearingModel() {
-  const { scene } = useGLTF('/models/bearing.glb');
+  // true → usa decoder Draco desde CDN de Google (evita copiar archivos locales)
+  const { scene } = useGLTF('/models/bearing-draco.glb', true);
 
   const model = useMemo(() => {
     const s = scene.clone(true);
@@ -50,7 +51,7 @@ function BearingModel() {
   );
 }
 
-useGLTF.preload('/models/bearing.glb');
+useGLTF.preload('/models/bearing-draco.glb', true);
 
 export default function BearingScene() {
   return (
