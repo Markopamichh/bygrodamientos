@@ -131,7 +131,7 @@ export default async function DashboardPage() {
       ),
       color: 'text-amber-400', bg: 'bg-amber-400/10',
       href: '/admin/productos',
-      sub: 'Catálogo MR Accesorios',
+      sub: 'Catálogo  Accesorios',
     },
     {
       label: 'Stock Crítico (≤2)',

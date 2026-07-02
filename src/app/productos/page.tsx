@@ -108,14 +108,14 @@ export default async function ProductosPage() {
                   href={`${WHATSAPP_BYG}?text=${encodeURIComponent('Hola, quiero consultar por sellos mecánicos')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col items-start gap-3 bg-white border border-amber-200 rounded-xl p-4 hover:border-amber-400 hover:shadow-md transition-all duration-300"
+                  className="group flex flex-col items-start gap-3 bg-white border border-stone-200 rounded-xl p-4 hover:border-primary hover:shadow-md transition-all duration-300"
                 >
-                  <div className="p-2.5 rounded-lg bg-amber-50 text-amber-600 group-hover:bg-amber-100 transition-colors">
+                  <div className="p-2.5 rounded-lg bg-stone-50 text-stone-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                     {ICONS[cat.id] ?? DEFAULT_ICON}
                   </div>
                   <div className="flex-1">
-                    <h2 className="font-display font-bold text-secondary text-sm leading-tight mb-1">{cat.name}</h2>
-                    <span className="inline-block text-xs bg-amber-100 text-amber-700 font-medium px-2 py-0.5 rounded-full">Por encargo</span>
+                    <h2 className="font-display font-bold text-secondary text-sm leading-tight mb-1 group-hover:text-primary transition-colors">{cat.name}</h2>
+                    <p className="text-xs text-stone-400">Consultar por WhatsApp</p>
                   </div>
                 </a>
               );

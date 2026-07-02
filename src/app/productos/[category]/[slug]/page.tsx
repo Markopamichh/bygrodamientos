@@ -139,6 +139,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
     return mapProduct(row, (d.categoria_slug as string | null) ?? categorySlug);
   });
 
+  const IMAGE_FIT: Record<string, string> = {
+    'motorreductores':        'object-contain scale-[1.6]',
+    'motores-electricos':     'object-contain scale-[1.35]',
+    'mangueras-industriales': 'object-contain scale-[1.25]',
+    'retenes':                'object-cover',
+  };
+
   const isEncargo = product.availability === 'encargo';
   const productMessage = isEncargo
     ? `Hola, me gustaría consultar precio y disponibilidad para: ${product.name} (pedido por encargo). ¿Podrían cotizarme?`
@@ -165,17 +172,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
                     src={product.images[0].url}
                     alt={product.images[0].alt}
                     fill
-                    className="object-cover"
+                    className={IMAGE_FIT[product.category] ?? 'object-contain scale-[1.18]'}
                     priority
                     quality={80}
                     sizes="(max-width: 1024px) 100vw, 50vw"
                   />
-                  {product.images[0].url.includes('ss-cnt-001c') && (
-                    <div
-                      className="absolute inset-0 pointer-events-none rounded-2xl"
-                      style={{ background: 'radial-gradient(ellipse at center, transparent 50%, white 88%)' }}
-                    />
-                  )}
                 </>
               ) : (
                 <div className="flex items-center justify-center h-full">

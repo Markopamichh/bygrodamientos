@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Container from '@/components/shared/Container';
+import { ShinyButton } from '@/components/ui/shiny-button';
 import { categories } from '@/data/categories';
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -89,12 +90,9 @@ export default function CategoryGrid() {
                       <h3 className="text-lg font-bold text-secondary mb-1.5">
                         {category.name}
                       </h3>
-                      <p className="text-sm text-stone-500 leading-relaxed mb-2">
+                      <p className="text-sm text-stone-500 leading-relaxed mb-3">
                         {category.description}
                       </p>
-                      <span className="inline-block bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mb-3">
-                        Por encargo
-                      </span>
                       <a
                         href={`https://wa.me/5492996726610?text=${encodeURIComponent('Hola, quiero consultar por sellos mecánicos')}`}
                         target="_blank"
@@ -140,6 +138,12 @@ export default function CategoryGrid() {
               </Link>
             );
           })}
+        </div>
+
+        <div className="mt-12 flex justify-center">
+          <Link href="/productos">
+            <ShinyButton className="px-8 py-3">Ver + Catálogos</ShinyButton>
+          </Link>
         </div>
       </Container>
     </section>
