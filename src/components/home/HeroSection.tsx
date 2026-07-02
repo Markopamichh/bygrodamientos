@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import Container from '@/components/shared/Container';
 import Button from '@/components/shared/Button';
 import { getWhatsAppLink } from '@/lib/utils';
@@ -73,6 +74,18 @@ export default function HeroSection() {
 
           {/* Left — texto */}
           <div>
+            {/* Logo */}
+            <Image
+              src="/images/Logo/logobyg1.png"
+              alt="BYG Rodamientos"
+              width={320}
+              height={160}
+              priority
+              className={`hidden md:block h-28 md:h-36 w-auto object-contain mb-6 transition-all duration-700 ease-out-expo ${
+                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              }`}
+            />
+
             {/* Badge */}
             <div className={`inline-flex items-center gap-2 bg-white/10 text-white/80 text-sm font-medium px-4 py-2 rounded-full mb-8 border border-white/10 transition-all duration-700 ease-out-expo ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
