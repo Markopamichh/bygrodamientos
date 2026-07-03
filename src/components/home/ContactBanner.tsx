@@ -83,7 +83,7 @@ export default function ContactBanner() {
           </div>
 
           <p className="reveal stagger-4 text-sm text-stone-500">
-            Horario de atención: Lunes a Viernes 8:30 - 17:00
+            Horario de atención: Lunes a Viernes 9:00 - 17:00
           </p>
         </div>
       </Container>

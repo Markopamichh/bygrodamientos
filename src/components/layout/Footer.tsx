@@ -124,10 +124,10 @@ export default function Footer() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span><span className="text-stone-400">Lun-Vie:</span> 8:30 - 17:00</span>
+                <span><span className="text-stone-400">Lun-Vie:</span> 9:00 - 17:00</span>
               </div>
               <span className="text-stone-600">|</span>
-              <span><span className="text-stone-400">Sábado:</span> 9:00 - 13:00</span>
+              <span><span className="text-stone-400">Sábado:</span> 9:00 - 12:00</span>
               <span className="text-stone-600">|</span>
               <span><span className="text-stone-400">Domingo:</span> Cerrado</span>
             </div>
