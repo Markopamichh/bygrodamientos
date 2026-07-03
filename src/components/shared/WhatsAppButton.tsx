@@ -16,7 +16,7 @@ export default function WhatsAppButton() {
       href={getWhatsAppLink()}
       target="_blank"
       rel="noopener noreferrer"
-      className={`fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#1da851] text-white p-4 rounded-full shadow-lg transition-all duration-500 ease-out-expo hover:scale-110 hover:shadow-xl hover:shadow-green-500/25 wa-pulse ${
+      className={`fixed bottom-24 sm:bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#1da851] text-white p-4 rounded-full shadow-lg transition-all duration-500 ease-out-expo hover:scale-110 hover:shadow-xl hover:shadow-green-500/25 wa-pulse ${
         visible
           ? 'opacity-100 translate-y-0 scale-100'
           : 'opacity-0 translate-y-8 scale-75 pointer-events-none'
