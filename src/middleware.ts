@@ -4,6 +4,15 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const host = request.headers.get('host') ?? '';
+
+  // Subdominio admin → reescribir a /admin/:path*
+  if (host === 'admin.bygrodamientos.com.ar') {
+    const adminPath = pathname === '/' ? '/admin' : `/admin${pathname}`;
+    const url = request.nextUrl.clone();
+    url.pathname = adminPath;
+    return NextResponse.rewrite(url);
+  }
 
   // Solo proteger rutas /admin, excepto /admin/login
   if (!pathname.startsWith('/admin') || pathname.startsWith('/admin/login')) {
@@ -42,5 +51,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/((?!_next|favicon.ico|images|og-image.png).*)'],
 };

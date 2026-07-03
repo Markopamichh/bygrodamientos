@@ -53,6 +53,14 @@ const nextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
         ],
       },
+      // Mismo header para el subdominio admin (cuando llega como /)
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'admin.bygrodamientos.com.ar' }],
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+        ],
+      },
     ];
   },
 }
