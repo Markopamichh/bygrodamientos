@@ -7,75 +7,84 @@ export async function middleware(request: NextRequest) {
   const host = request.headers.get('host') ?? '';
   const isAdminSubdomain = host === 'admin.bygrodamientos.com.ar';
 
-  // En el subdominio admin, mapear paths al equivalente /admin/*
-  // /        → /admin
-  // /login   → /admin/login
-  // /stock   → /admin/stock
-  // (si ya viene con /admin/* lo dejamos pasar igual para evitar doble prefijo)
-  let effectivePath = pathname;
-  if (isAdminSubdomain && !pathname.startsWith('/admin')) {
-    effectivePath = pathname === '/' ? '/admin' : `/admin${pathname}`;
+  // ── Dominio principal: proteger /admin/* excepto /admin/login ──
+  if (!isAdminSubdomain) {
+    if (!pathname.startsWith('/admin') || pathname.startsWith('/admin/login')) {
+      return NextResponse.next();
+    }
+    const response = NextResponse.next({ request: { headers: request.headers } });
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => request.cookies.getAll(),
+          setAll: (cookiesToSet) =>
+            cookiesToSet.forEach(({ name, value, options }) => {
+              request.cookies.set(name, value);
+              response.cookies.set(name, value, options);
+            }),
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.redirect(new URL('/admin/login', request.url));
+    return response;
   }
 
-  // Rutas que no requieren protección
-  const isLoginPath = effectivePath === '/admin/login' || effectivePath.startsWith('/admin/login');
-  const isAdminPath = effectivePath.startsWith('/admin');
+  // ── Subdominio admin.bygrodamientos.com.ar ──
+  // Mapear el path al equivalente /admin/*
+  // /         → /admin          (dashboard)
+  // /login    → /admin/login    (login)
+  // /stock    → /admin/stock    (etc.)
+  const targetPath = pathname === '/'
+    ? '/admin'
+    : pathname.startsWith('/admin')
+      ? pathname                  // ya viene con /admin, dejarlo
+      : `/admin${pathname}`;
 
-  if (!isAdminPath || isLoginPath) {
-    if (isAdminSubdomain && isLoginPath) {
-      // Reescribir /login → /admin/login en el subdominio
-      const url = request.nextUrl.clone();
-      url.pathname = effectivePath;
-      return NextResponse.rewrite(url);
-    }
-    if (isAdminSubdomain) {
-      // Cualquier ruta pública en el subdominio admin → redirect al login del subdominio
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-    return NextResponse.next();
-  }
+  const isLoginTarget = targetPath === '/admin/login' || targetPath.startsWith('/admin/login/');
 
-  // Verificar autenticación
-  const response = NextResponse.next({
-    request: { headers: request.headers },
-  });
-
+  // Verificar sesión
+  const response = NextResponse.next({ request: { headers: request.headers } });
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options?: object }[]) {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) =>
           cookiesToSet.forEach(({ name, value, options }) => {
             request.cookies.set(name, value);
             response.cookies.set(name, value, options);
-          });
-        },
+          }),
       },
     }
   );
-
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    // En el subdominio, redirigir a /login (que mapea a /admin/login)
-    const loginUrl = isAdminSubdomain ? '/login' : '/admin/login';
-    return NextResponse.redirect(new URL(loginUrl, request.url));
-  }
+  const url = request.nextUrl.clone();
 
-  // Autenticado: si es subdominio, hacer rewrite al path real de /admin
-  if (isAdminSubdomain && effectivePath !== pathname) {
-    const url = request.nextUrl.clone();
-    url.pathname = effectivePath;
+  if (!user) {
+    // Sin sesión → mostrar login (rewrite, sin redirect de browser)
+    url.pathname = '/admin/login';
     return NextResponse.rewrite(url);
   }
 
-  return response;
+  if (isLoginTarget) {
+    // Con sesión en /login → ir al dashboard
+    url.pathname = '/admin';
+    return NextResponse.rewrite(url);
+  }
+
+  // Con sesión → rewrite al path correspondiente
+  url.pathname = targetPath;
+  return NextResponse.rewrite(url);
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/((?!_next|favicon.ico|images|og-image.png|sitemap.xml|robots.txt).*)'],
+  matcher: [
+    '/admin/:path*',
+    '/((?!_next/static|_next/image|favicon.ico|images|og-image.png|sitemap.xml|robots.txt).*)',
+  ],
 };
