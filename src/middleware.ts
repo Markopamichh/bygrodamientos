@@ -5,20 +5,31 @@ import type { NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const host = request.headers.get('host') ?? '';
+  const isAdminSubdomain = host === 'admin.bygrodamientos.com.ar';
 
-  // Subdominio admin → reescribir a /admin/:path*
-  if (host === 'admin.bygrodamientos.com.ar') {
-    const adminPath = pathname === '/' ? '/admin' : `/admin${pathname}`;
-    const url = request.nextUrl.clone();
-    url.pathname = adminPath;
-    return NextResponse.rewrite(url);
+  // En el subdominio admin, mapear paths al equivalente /admin/*
+  // /        → /admin
+  // /login   → /admin/login
+  // /stock   → /admin/stock
+  // (si ya viene con /admin/* lo dejamos pasar igual para evitar doble prefijo)
+  let effectivePath = pathname;
+  if (isAdminSubdomain && !pathname.startsWith('/admin')) {
+    effectivePath = pathname === '/' ? '/admin' : `/admin${pathname}`;
   }
 
-  // Solo proteger rutas /admin, excepto /admin/login
-  if (!pathname.startsWith('/admin') || pathname.startsWith('/admin/login')) {
+  // Rutas que no requieren protección
+  const isLoginPath = effectivePath === '/admin/login' || effectivePath.startsWith('/admin/login');
+  const isAdminPath = effectivePath.startsWith('/admin');
+
+  if (!isAdminPath || isLoginPath) {
+    if (isAdminSubdomain && !isLoginPath) {
+      // Cualquier ruta pública en el subdominio admin → redirect al login del subdominio
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
     return NextResponse.next();
   }
 
+  // Verificar autenticación
   const response = NextResponse.next({
     request: { headers: request.headers },
   });
@@ -44,12 +55,21 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect(new URL('/admin/login', request.url));
+    // En el subdominio, redirigir a /login (que mapea a /admin/login)
+    const loginUrl = isAdminSubdomain ? '/login' : '/admin/login';
+    return NextResponse.redirect(new URL(loginUrl, request.url));
+  }
+
+  // Autenticado: si es subdominio, hacer rewrite al path real de /admin
+  if (isAdminSubdomain && effectivePath !== pathname) {
+    const url = request.nextUrl.clone();
+    url.pathname = effectivePath;
+    return NextResponse.rewrite(url);
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/((?!_next|favicon.ico|images|og-image.png).*)'],
+  matcher: ['/admin/:path*', '/((?!_next|favicon.ico|images|og-image.png|sitemap.xml|robots.txt).*)'],
 };
