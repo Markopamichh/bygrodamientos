@@ -88,7 +88,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { category, slug } = await params;
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('productos')
@@ -100,6 +100,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   return {
     title: `${data.nombre} | BYG Rodamientos Neuquén`,
     description: (data.descripcion as string | null) ?? (data.nombre as string),
+    alternates: { canonical: `/productos/${category}/${slug}` },
   };
 }
 

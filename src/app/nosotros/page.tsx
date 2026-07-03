@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'Sobre Nosotros',
   description: 'Empresa neuquina con más de 300 clientes en Patagonia. Distribuidores especializados en rodamientos y repuestos industriales.',
   keywords: ['byg rodamientos', 'empresa neuquen', 'rodamientos patagonia', 'sobre nosotros'],
+  alternates: { canonical: '/nosotros' },
 };
 
 const valueIcons: Record<string, React.ReactNode> = {

@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: 'Marcas | BYG Rodamientos Neuquén',
   description:
     'En BYG Rodamientos comercializamos productos de las marcas líderes mundiales: SKF, NSK, FAG, NTN, TIMKEN, INA, RINGSPANN y muchas más. Calidad garantizada en cada componente.',
+  alternates: { canonical: '/marcas' },
 };
 
 export default function MarcasPage() {

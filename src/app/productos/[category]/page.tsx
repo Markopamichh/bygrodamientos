@@ -60,6 +60,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       title: category.seo.metaTitle,
       description: category.seo.metaDescription,
       keywords: category.seo.keywords,
+      alternates: { canonical: `/productos/${categorySlug}` },
     };
   }
   const supabase = createAdminClient();
@@ -68,6 +69,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   return {
     title: `${data.nombre} | BYG Rodamientos Neuquén`,
     description: `${data.nombre} — BYG Rodamientos Neuquén`,
+    alternates: { canonical: `/productos/${categorySlug}` },
   };
 }
 

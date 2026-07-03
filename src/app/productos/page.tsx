@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: 'Catálogo de Productos',
   description: 'Catálogo completo: rodamientos industriales, retenes, componentes de transmisión, herramientas y más.',
   keywords: ['catalogo rodamientos', 'productos industriales', 'rodamientos neuquen', 'retenes'],
+  alternates: { canonical: '/productos' },
 };
 
 // Íconos SVG por slug de categoría

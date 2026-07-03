@@ -7,8 +7,9 @@ import ContactInfo from '@/components/contact/ContactInfo';
 
 export const metadata: Metadata = {
   title: 'Contacto',
-  description: 'Contacte a BYG Rodamientos: tel. 0299-4462546, WhatsApp 299-672-6610. Atención personalizada y stock permanente en Neuquén.',
+  description: 'Contacte a BYG Rodamientos: tel. 0299-4462546, WhatsApp +54 9 299 401-9699. Atención personalizada y stock permanente en Neuquén.',
   keywords: ['contacto byg rodamientos', 'rodamientos neuquen contacto', 'telefono rodamientos', 'whatsapp rodamientos'],
+  alternates: { canonical: '/contacto' },
 };
 
 export default function ContactoPage() {

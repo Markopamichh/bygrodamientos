@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Container from '@/components/shared/Container';
 import { ShinyButton } from '@/components/ui/shiny-button';
 import { categories } from '@/data/categories';
+import { CONTACT } from '@/lib/constants';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   rodamientos: (
@@ -94,7 +95,7 @@ export default function CategoryGrid() {
                         {category.description}
                       </p>
                       <a
-                        href={`https://wa.me/5492996726610?text=${encodeURIComponent('Hola, quiero consultar por sellos mecánicos')}`}
+                        href={`https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent('Hola, quiero consultar por sellos mecánicos')}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 w-full bg-green-500 hover:bg-green-600 text-white font-medium text-sm py-2.5 px-4 rounded-lg transition-colors duration-300"

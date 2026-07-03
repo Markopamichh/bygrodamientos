@@ -4,7 +4,7 @@ import '@/styles/globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import WhatsAppButton from '@/components/shared/WhatsAppButton';
-import { SEO, SITE_NAME, SITE_URL } from '@/lib/constants';
+import { CONTACT, SEO, SITE_NAME, SITE_URL } from '@/lib/constants';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   description: SEO.defaultDescription,
   keywords: SEO.keywords,
   authors: [{ name: SITE_NAME }],
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'es_AR',
@@ -34,11 +37,13 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: SEO.defaultTitle,
     description: SEO.defaultDescription,
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: 'summary_large_image',
     title: SEO.defaultTitle,
     description: SEO.defaultDescription,
+    images: ['/og-image.png'],
   },
   robots: {
     index: true,
@@ -59,7 +64,7 @@ const localBusinessJsonLd = {
   name: 'BYG Rodamientos',
   description: 'Distribuidora de rodamientos, retenes, correas y componentes industriales en Neuquén, Argentina.',
   url: SITE_URL,
-  telephone: '+54-299-446-2546',
+  telephone: '+54-299-4462546',
   email: 'bygrodamientos@gmail.com',
   address: {
     '@type': 'PostalAddress',
@@ -82,7 +87,7 @@ const localBusinessJsonLd = {
       closes: '18:00',
     },
   ],
-  sameAs: [`https://wa.me/5492994019699`],
+  sameAs: [`https://wa.me/${CONTACT.whatsapp}`],
 };
 
 export default function RootLayout({
