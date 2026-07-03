@@ -97,10 +97,10 @@ export default function ContactInfo() {
         </h4>
         <div className="space-y-2 text-sm">
           <p className="text-stone-600">
-            <span className="font-medium text-stone-700">Lunes a Viernes:</span> 8:30 - 17:00
+            <span className="font-medium text-stone-700">Lunes a Viernes:</span> 9:00 - 17:00
           </p>
           <p className="text-stone-600">
-            <span className="font-medium text-stone-700">Sábados:</span> 9:00 - 13:00
+            <span className="font-medium text-stone-700">Sábados:</span> 9:00 - 12:00
           </p>
           <p className="text-stone-600">
             <span className="font-medium text-stone-700"> Domingos:</span> Cerrado

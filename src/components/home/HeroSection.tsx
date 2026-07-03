@@ -151,7 +151,7 @@ export default function HeroSection() {
           {[
             { end: 300, suffix: '+', label: 'Clientes activos' },
             { end: 48, suffix: 'h', label: 'Entrega rápida' },
-            { end: 15, suffix: '+', label: 'Años de experiencia' },
+            { end: 40, suffix: '+', label: 'Años de experiencia en el rubro' },
             { end: 100, suffix: '%', label: 'Garantía total' },
           ].map((stat, i) => (
             <div key={i} className="text-center group">
