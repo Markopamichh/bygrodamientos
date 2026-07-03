@@ -68,7 +68,9 @@ export async function middleware(request: NextRequest) {
   if (!user) {
     // Sin sesión → mostrar login (rewrite, sin redirect de browser)
     url.pathname = '/admin/login';
-    return NextResponse.rewrite(url);
+    const reqHeaders = new Headers(request.headers);
+    reqHeaders.set('x-rewritten-path', '/admin/login');
+    return NextResponse.rewrite(url, { request: { headers: reqHeaders } });
   }
 
   if (isLoginTarget) {

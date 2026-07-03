@@ -12,8 +12,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // Segunda capa: si el middleware no capturó la request, el layout redirige
   if (!user) {
     const headersList = await headers();
-    const pathname = headersList.get('x-invoke-path') ?? '';
-    if (!pathname.includes('/admin/login')) {
+    const invokePath = headersList.get('x-invoke-path') ?? '';
+    const rewrittenPath = headersList.get('x-rewritten-path') ?? '';
+    const effectivePath = rewrittenPath || invokePath;
+    if (!effectivePath.includes('/admin/login')) {
       redirect('/admin/login');
     }
   }
