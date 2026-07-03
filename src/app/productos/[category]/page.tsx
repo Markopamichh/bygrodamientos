@@ -5,7 +5,7 @@ import Container from '@/components/shared/Container';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import ProductGrid from '@/components/products/ProductGrid';
 import { categories } from '@/data/categories';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/server';
 import type { ProductoRow } from '@/types/database';
 import type { Product, CategoryType } from '@/types/product';
 
@@ -41,7 +41,7 @@ function mapProduct(p: ProductoRow, catSlug: string): Product {
 }
 
 export async function generateStaticParams() {
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from('categorias').select('slug');
   const dbSlugs = (data ?? []).map((c) => ({ category: c.slug as string }));
   const hardcodedSlugs = categories.map((cat) => ({ category: cat.slug }));
@@ -63,7 +63,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       alternates: { canonical: `/productos/${categorySlug}` },
     };
   }
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
   const { data } = await supabase.from('categorias').select('nombre').eq('slug', categorySlug).single();
   if (!data) return { title: 'Categoría no encontrada' };
   return {
@@ -87,14 +87,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     categoryDesc = hardcoded.longDescription;
     categorySubcats = hardcoded.subcategories;
   } else {
-    const supabase2 = createAdminClient();
+    const supabase2 = createPublicClient();
     const { data: catData } = await supabase2.from('categorias').select('nombre').eq('slug', categorySlug).single();
     if (!catData) notFound();
     categoryName = catData.nombre;
     categoryDesc = '';
   }
 
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
   const { data } = await supabase
     .from('productos')
     .select('*')

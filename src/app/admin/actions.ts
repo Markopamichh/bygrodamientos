@@ -6,7 +6,6 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createAuthClient, createAdminClient } from '@/lib/supabase/server';
 
-const SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000; // 8 horas
 
 async function getSessionUser() {
   const supabase = await createAuthClient();

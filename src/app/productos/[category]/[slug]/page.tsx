@@ -6,7 +6,7 @@ import Container from '@/components/shared/Container';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import ProductCard from '@/components/products/ProductCard';
 import { categories } from '@/data/categories';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/server';
 import { getWhatsAppLink } from '@/lib/utils';
 import { CONTACT } from '@/lib/constants';
 import type { ProductoRow } from '@/types/database';
@@ -73,7 +73,7 @@ function rowFromData(id: string, data: Record<string, unknown>): ProductoRow {
 
 export async function generateStaticParams() {
   try {
-    const supabase = createAdminClient();
+    const supabase = createPublicClient();
     const { data } = await supabase
       .from('productos')
       .select('slug, categoria_slug')
@@ -89,7 +89,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { category, slug } = await params;
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
   const { data } = await supabase
     .from('productos')
     .select('nombre, descripcion')
@@ -106,7 +106,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { category: categorySlug, slug } = await params;
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
 
   const { data: productData } = await supabase
     .from('productos')

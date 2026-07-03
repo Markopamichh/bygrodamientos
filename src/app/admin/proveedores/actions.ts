@@ -1,9 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, requireAuth } from '@/lib/supabase/server';
 
 export async function crearProveedorAction(formData: FormData) {
+  await requireAuth();
   const supabase = createAdminClient();
   const { error } = await supabase.from('proveedores').insert({
     nombre: formData.get('nombre') as string,
@@ -18,6 +19,7 @@ export async function crearProveedorAction(formData: FormData) {
 }
 
 export async function editarProveedorAction(id: string, formData: FormData) {
+  await requireAuth();
   const supabase = createAdminClient();
   const { error } = await supabase.from('proveedores').update({
     nombre: formData.get('nombre') as string,
@@ -32,6 +34,7 @@ export async function editarProveedorAction(id: string, formData: FormData) {
 }
 
 export async function eliminarProveedorAction(id: string) {
+  await requireAuth();
   const supabase = createAdminClient();
   const { error } = await supabase.from('proveedores').delete().eq('id', id);
   if (error) throw new Error(error.message);

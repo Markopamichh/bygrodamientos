@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Container from '@/components/shared/Container';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { categories } from '@/data/categories';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createPublicClient } from '@/lib/supabase/server';
 
 export const revalidate = 60;
 
@@ -62,7 +62,7 @@ const DEFAULT_ICON = (
 const WHATSAPP_BYG = 'https://wa.me/5492994019699';
 
 export default async function ProductosPage() {
-  const supabase = createAdminClient();
+  const supabase = createPublicClient();
 
   // Todas las categorías de la DB + conteo de productos
   const [{ data: dbCats }, { data: counts }] = await Promise.all([

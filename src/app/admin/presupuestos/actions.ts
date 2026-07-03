@@ -1,6 +1,6 @@
 'use server';
 
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, requireAuth } from '@/lib/supabase/server';
 
 interface NuevoClienteInput {
   nombre: string;
@@ -27,6 +27,7 @@ interface NuevoPresupuestoInput {
 }
 
 export async function crearCliente(input: NuevoClienteInput): Promise<{ id: string } | { error: string }> {
+  await requireAuth();
   const sb = createAdminClient();
   const { data, error } = await sb
     .from('clientes')
@@ -47,6 +48,7 @@ export async function crearCliente(input: NuevoClienteInput): Promise<{ id: stri
 }
 
 export async function crearPresupuesto(input: NuevoPresupuestoInput): Promise<{ id: string } | { error: string }> {
+  await requireAuth();
   const sb = createAdminClient();
 
   const { data: pres, error: err1 } = await sb
@@ -84,6 +86,7 @@ export async function crearPresupuesto(input: NuevoPresupuestoInput): Promise<{ 
 }
 
 export async function fetchListaPresupuestos() {
+  await requireAuth();
   const sb = createAdminClient();
   const { data } = await sb
     .from('presupuestos')
@@ -93,6 +96,7 @@ export async function fetchListaPresupuestos() {
 }
 
 export async function fetchPresupuesto(id: string) {
+  await requireAuth();
   const sb = createAdminClient();
   const [{ data: pres }, { data: items }] = await Promise.all([
     sb
@@ -110,6 +114,7 @@ export async function fetchPresupuesto(id: string) {
 }
 
 export async function actualizarEstadoPresupuesto(id: string, estado: string) {
+  await requireAuth();
   const sb = createAdminClient();
   const { error } = await sb.from('presupuestos').update({ estado }).eq('id', id);
   if (error) return { error: error.message };
@@ -117,6 +122,7 @@ export async function actualizarEstadoPresupuesto(id: string, estado: string) {
 }
 
 export async function eliminarPresupuesto(id: string) {
+  await requireAuth();
   const sb = createAdminClient();
   const { error } = await sb.from('presupuestos').delete().eq('id', id);
   if (error) return { error: error.message };

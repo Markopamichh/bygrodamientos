@@ -1,6 +1,6 @@
 'use server';
 
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, requireAuth } from '@/lib/supabase/server';
 
 interface ClientePayload {
   nombre: string;
@@ -14,18 +14,21 @@ interface ClientePayload {
 }
 
 export async function fetchClientes() {
+  await requireAuth();
   const sb = createAdminClient();
   const { data } = await sb.from('clientes').select('*').eq('activo', true).order('nombre');
   return data ?? [];
 }
 
 export async function insertCliente(payload: ClientePayload): Promise<{ error?: string }> {
+  await requireAuth();
   const sb = createAdminClient();
   const { error } = await sb.from('clientes').insert(payload);
   return error ? { error: error.message } : {};
 }
 
 export async function updateCliente(id: string, payload: ClientePayload): Promise<{ error?: string }> {
+  await requireAuth();
   const sb = createAdminClient();
   const { error } = await sb.from('clientes').update(payload).eq('id', id);
   return error ? { error: error.message } : {};
