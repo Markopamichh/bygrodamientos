@@ -22,7 +22,13 @@ export async function middleware(request: NextRequest) {
   const isAdminPath = effectivePath.startsWith('/admin');
 
   if (!isAdminPath || isLoginPath) {
-    if (isAdminSubdomain && !isLoginPath) {
+    if (isAdminSubdomain && isLoginPath) {
+      // Reescribir /login → /admin/login en el subdominio
+      const url = request.nextUrl.clone();
+      url.pathname = effectivePath;
+      return NextResponse.rewrite(url);
+    }
+    if (isAdminSubdomain) {
       // Cualquier ruta pública en el subdominio admin → redirect al login del subdominio
       return NextResponse.redirect(new URL('/login', request.url));
     }
