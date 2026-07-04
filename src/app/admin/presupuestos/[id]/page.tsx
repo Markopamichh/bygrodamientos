@@ -87,7 +87,7 @@ export default function PresupuestoDetallePage() {
   return (
     <div className="p-6 md:p-8 max-w-4xl">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
           <button onClick={() => router.back()} className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
@@ -103,7 +103,7 @@ export default function PresupuestoDetallePage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Enviar por email */}
           {pres.clientes?.email && (
             <button onClick={enviarEmail} disabled={enviando}
@@ -179,7 +179,8 @@ export default function PresupuestoDetallePage() {
             <div className="px-5 py-3 border-b border-white/10">
               <h2 className="text-xs text-white/40 font-semibold uppercase tracking-wider">Detalle</h2>
             </div>
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px]">
               <thead>
                 <tr className="border-b border-white/5">
                   <th className="text-left px-5 py-2.5 text-xs text-white/30 font-medium">Descripción</th>
@@ -199,6 +200,7 @@ export default function PresupuestoDetallePage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
 
           {pres.notas && (

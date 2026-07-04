@@ -81,8 +81,8 @@ export default function PresupuestosPage() {
           )}
         </div>
       ) : (
-        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
-          <table className="w-full">
+        <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-white/10">
                 <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider">Nº</th>
