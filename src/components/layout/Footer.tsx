@@ -20,6 +20,8 @@ export default function Footer() {
                 alt="BYG Rodamientos"
                 width={200}
                 height={224}
+                sizes="128px"
+                loading="lazy"
                 className="h-32 w-auto object-contain"
               />
             </div>
