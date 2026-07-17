@@ -17,7 +17,7 @@ interface ItemRow {
   precio_venta: number | null;
   ubicacion: string | null;
   activo: boolean;
-  productos: { nombre: string } | null;
+  productos: { nombre: string; subcategoria: string | null } | null;
 }
 
 export default async function StockPage({
@@ -27,35 +27,56 @@ export default async function StockPage({
 }) {
   const { q } = await searchParams;
   const supabase = createAdminClient();
-  const sel = 'id, codigo, fabricante, stock_actual, stock_minimo, precio_venta, ubicacion, activo, productos(nombre)';
+  const sel = 'id, codigo, fabricante, stock_actual, stock_minimo, precio_venta, ubicacion, activo, productos(nombre, subcategoria)';
+  const selInner = 'id, codigo, fabricante, stock_actual, stock_minimo, precio_venta, ubicacion, activo, productos!inner(nombre, subcategoria)';
+
+  // PostgREST corta en 1000 filas por página → paginamos para traer todo (tope de seguridad).
+  const PAGE = 1000;
+  const MAX = 6000;
+  async function fetchAll(build: (from: number, to: number) => PromiseLike<{ data: unknown[] | null }>): Promise<ItemRow[]> {
+    const out: ItemRow[] = [];
+    for (let from = 0; from < MAX; from += PAGE) {
+      const { data } = await build(from, from + PAGE - 1);
+      const rows = (data ?? []) as unknown as ItemRow[];
+      out.push(...rows);
+      if (rows.length < PAGE) break;
+    }
+    return out;
+  }
 
   let items: ItemRow[] = [];
 
   if (q) {
-    const [{ data: byCode }, { data: equivMatches }] = await Promise.all([
-      supabase.from('items').select(sel).ilike('codigo', `%${q}%`).order('codigo'),
+    const [byCode, byProducto, { data: equivMatches }] = await Promise.all([
+      // por código del ítem
+      fetchAll((from, to) => supabase.from('items').select(sel).ilike('codigo', `%${q}%`).order('codigo').range(from, to)),
+      // por rubro (subcategoria) o nombre del producto
+      fetchAll((from, to) =>
+        supabase
+          .from('items')
+          .select(selInner)
+          .or(`nombre.ilike.%${q}%,subcategoria.ilike.%${q}%`, { foreignTable: 'productos' })
+          .order('codigo')
+          .range(from, to)
+      ),
+      // por códigos equivalentes
       supabase.from('item_codigos_equivalentes').select('item_id').ilike('codigo', `%${q}%`),
     ]);
 
-    const foundIds = new Set((byCode ?? []).map((i) => i.id as string));
+    const merged = new Map<string, ItemRow>();
+    for (const row of [...byCode, ...byProducto]) merged.set(row.id, row);
+
     const extraIds = Array.from(
       new Set((equivMatches ?? []).map((e) => e.item_id as string))
-    ).filter((id) => !foundIds.has(id));
-
-    let byEquiv: ItemRow[] = [];
+    ).filter((id) => !merged.has(id));
     if (extraIds.length > 0) {
-      const { data } = await supabase
-        .from('items')
-        .select(sel)
-        .in('id', extraIds)
-        .order('codigo');
-      byEquiv = (data ?? []) as unknown as ItemRow[];
+      const { data } = await supabase.from('items').select(sel).in('id', extraIds).order('codigo');
+      for (const row of (data ?? []) as unknown as ItemRow[]) merged.set(row.id, row);
     }
 
-    items = [...((byCode ?? []) as unknown as ItemRow[]), ...byEquiv];
+    items = Array.from(merged.values());
   } else {
-    const { data } = await supabase.from('items').select(sel).order('codigo');
-    items = (data ?? []) as unknown as ItemRow[];
+    items = await fetchAll((from, to) => supabase.from('items').select(sel).order('codigo').range(from, to));
   }
 
   return (
@@ -98,7 +119,7 @@ export default async function StockPage({
         <input
           name="q"
           defaultValue={q}
-          placeholder="Buscar por código (incluye códigos equivalentes)..."
+          placeholder="Buscar por código, rubro o nombre (ej: RETENES, 6407)..."
           className="flex-1 bg-[#1a1a1a] border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/30 text-sm focus:outline-none focus:border-yellow-500/50"
         />
         <button
@@ -128,6 +149,9 @@ export default async function StockPage({
                 <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden md:table-cell">
                   Producto (familia)
                 </th>
+                <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">
+                  Rubro
+                </th>
                 <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden lg:table-cell">
                   Fabricante
                 </th>
@@ -155,6 +179,15 @@ export default async function StockPage({
                     <span className="text-white/40 text-sm">
                       {item.productos?.nombre ?? '—'}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    {item.productos?.subcategoria ? (
+                      <span className="text-xs text-white/70 bg-white/5 px-2 py-1 rounded-lg">
+                        {item.productos.subcategoria}
+                      </span>
+                    ) : (
+                      <span className="text-white/20 text-sm">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 hidden lg:table-cell">
                     <span className="text-white/40 text-sm">{item.fabricante ?? '—'}</span>
