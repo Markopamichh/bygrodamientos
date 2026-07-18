@@ -6,7 +6,11 @@ export const metadata = { title: 'Stock — Admin BYG' };
 
 interface SearchParams {
   q?: string;
+  rubro?: string;
 }
+
+/** Valor de ?rubro= para los ítems cuyo producto no tiene rubro cargado. */
+const SIN_RUBRO = '__sin_rubro__';
 
 interface ItemRow {
   id: string;
@@ -25,7 +29,7 @@ export default async function StockPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const { q } = await searchParams;
+  const { q, rubro } = await searchParams;
   const supabase = createAdminClient();
   const sel = 'id, codigo, fabricante, stock_actual, stock_minimo, precio_venta, ubicacion, activo, productos(nombre, subcategoria)';
   const selInner = 'id, codigo, fabricante, stock_actual, stock_minimo, precio_venta, ubicacion, activo, productos!inner(nombre, subcategoria)';
@@ -45,8 +49,43 @@ export default async function StockPage({
   }
 
   let items: ItemRow[] = [];
+  let rubros: { nombre: string; valor: string; total: number }[] = [];
 
-  if (q) {
+  // Vista por defecto (sin búsqueda ni rubro): listado de rubros con su cantidad.
+  if (!q && !rubro) {
+    const conteo = new Map<string, number>();
+    for (let from = 0; from < MAX; from += PAGE) {
+      const { data } = await supabase
+        .from('items')
+        .select('id, productos!inner(subcategoria)')
+        .range(from, from + PAGE - 1);
+      const rows = (data ?? []) as unknown as { productos: { subcategoria: string | null } | null }[];
+      for (const r of rows) {
+        const key = r.productos?.subcategoria?.trim() || SIN_RUBRO;
+        conteo.set(key, (conteo.get(key) ?? 0) + 1);
+      }
+      if (rows.length < PAGE) break;
+    }
+    rubros = Array.from(conteo.entries())
+      .map(([valor, total]) => ({
+        valor,
+        nombre: valor === SIN_RUBRO ? 'Sin rubro' : valor,
+        total,
+      }))
+      .sort((a, b) => {
+        if (a.valor === SIN_RUBRO) return 1;
+        if (b.valor === SIN_RUBRO) return -1;
+        return b.total - a.total;
+      });
+  } else if (rubro) {
+    // Ítems de un rubro puntual
+    items = await fetchAll((from, to) => {
+      const base = supabase.from('items').select(selInner).order('codigo').range(from, to);
+      return rubro === SIN_RUBRO
+        ? base.filter('productos.subcategoria', 'is', null)
+        : base.filter('productos.subcategoria', 'eq', rubro);
+    });
+  } else if (q) {
     const [byCode, byProducto, { data: equivMatches }] = await Promise.all([
       // por código del ítem
       fetchAll((from, to) => supabase.from('items').select(sel).ilike('codigo', `%${q}%`).order('codigo').range(from, to)),
@@ -75,17 +114,31 @@ export default async function StockPage({
     }
 
     items = Array.from(merged.values());
-  } else {
-    items = await fetchAll((from, to) => supabase.from('items').select(sel).order('codigo').range(from, to));
   }
+
+  const enListado = Boolean(q || rubro);
+  const tituloRubro = rubro === SIN_RUBRO ? 'Sin rubro' : rubro;
 
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-white">Stock</h1>
+          {enListado && (
+            <Link
+              href="/admin/stock"
+              className="text-white/30 hover:text-white text-sm transition-colors inline-flex items-center gap-1.5 mb-2"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              Volver a rubros
+            </Link>
+          )}
+          <h1 className="text-2xl font-bold text-white">{tituloRubro ?? 'Stock'}</h1>
           <p className="text-white/40 text-sm mt-0.5">
-            {items.length} ítem{items.length !== 1 ? 's' : ''}
+            {enListado
+              ? `${items.length} ítem${items.length !== 1 ? 's' : ''}`
+              : `${rubros.length} rubros · ${rubros.reduce((a, r) => a + r.total, 0)} ítems`}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -138,6 +191,23 @@ export default async function StockPage({
         )}
       </form>
 
+      {!enListado ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {rubros.map((r) => (
+            <Link
+              key={r.valor}
+              href={`/admin/stock?rubro=${encodeURIComponent(r.valor)}`}
+              className="bg-[#1a1a1a] border border-white/10 hover:border-yellow-500/50 hover:bg-white/[0.03] rounded-xl p-4 transition-colors group"
+            >
+              <p className="text-white/80 group-hover:text-white text-sm font-medium leading-snug mb-2">
+                {r.nombre}
+              </p>
+              <p className="text-yellow-400 text-xl font-bold">{r.total}</p>
+              <p className="text-white/30 text-xs">ítem{r.total !== 1 ? 's' : ''}</p>
+            </Link>
+          ))}
+        </div>
+      ) : (
       <div className="bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -252,7 +322,7 @@ export default async function StockPage({
         {items.length === 0 && (
           <div className="py-16 text-center">
             <p className="text-white/30 text-sm mb-4">
-              {q ? `Sin resultados para "${q}"` : 'No hay ítems de stock cargados'}
+              {q ? `Sin resultados para "${q}"` : 'No hay ítems en este rubro'}
             </p>
             {!q && (
               <Link
@@ -265,6 +335,7 @@ export default async function StockPage({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
