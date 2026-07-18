@@ -20,18 +20,36 @@ export default async function EditarItemPage({ params }: Props) {
   const { id } = await params;
   const supabase = createAdminClient();
 
-  const [{ data: raw }, { data: productosRaw }] = await Promise.all([
-    supabase
-      .from('items')
-      .select(
-        'id, codigo, fabricante, numero_parte, medida_interna, medida_externa, ancho, stock_minimo, precio_costo, precio_venta, ubicacion, activo, producto_id'
-      )
-      .eq('id', id)
-      .single(),
-    supabase.from('productos').select('id, nombre').eq('activo', true).order('nombre'),
-  ]);
+  const { data: raw } = await supabase
+    .from('items')
+    .select(
+      'id, codigo, fabricante, numero_parte, medida_interna, medida_externa, ancho, stock_minimo, precio_costo, precio_venta, ubicacion, activo, producto_id, productos(nombre, subcategoria)'
+    )
+    .eq('id', id)
+    .single();
 
   if (!raw) notFound();
+
+  // Rubros existentes para el desplegable (paginado: PostgREST corta en 1000).
+  const rubrosSet = new Set<string>();
+  for (let from = 0; from < 8000; from += 1000) {
+    const { data } = await supabase
+      .from('productos')
+      .select('subcategoria')
+      .not('subcategoria', 'is', null)
+      .range(from, from + 999);
+    const rows = data ?? [];
+    for (const r of rows) {
+      const v = (r.subcategoria as string | null)?.trim();
+      if (v) rubrosSet.add(v);
+    }
+    if (rows.length < 1000) break;
+  }
+  const rubros = Array.from(rubrosSet).sort((a, b) => a.localeCompare(b, 'es'));
+
+  const productoRel = raw.productos as unknown as
+    | { nombre: string; subcategoria: string | null }
+    | null;
 
   const item = {
     id: raw.id as string,
@@ -46,13 +64,9 @@ export default async function EditarItemPage({ params }: Props) {
     precio_venta: raw.precio_venta as number | null,
     ubicacion: (raw.ubicacion as string | null) ?? '',
     activo: raw.activo as boolean,
-    producto_id: (raw.producto_id as string | null) ?? '',
+    nombre: productoRel?.nombre ?? '',
+    rubro: productoRel?.subcategoria ?? '',
   };
-
-  const productos = (productosRaw ?? []).map((p) => ({
-    id: p.id as string,
-    nombre: p.nombre as string,
-  }));
 
   const updateWithId = updateItemAction.bind(null, id);
 
@@ -72,7 +86,7 @@ export default async function EditarItemPage({ params }: Props) {
         <p className="text-white/40 text-sm mt-0.5 font-mono">{item.codigo}</p>
       </div>
       <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-        <EditItemForm action={updateWithId} productos={productos} item={item} backHref={`/admin/stock/${id}`} />
+        <EditItemForm action={updateWithId} rubros={rubros} item={item} backHref={`/admin/stock/${id}`} />
       </div>
     </div>
   );

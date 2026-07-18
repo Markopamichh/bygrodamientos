@@ -3,11 +3,6 @@
 import { useFormState, useFormStatus } from 'react-dom';
 import type { ItemFormState } from '../../actions';
 
-interface Producto {
-  id: string;
-  nombre: string;
-}
-
 interface Item {
   id: string;
   codigo: string;
@@ -21,12 +16,13 @@ interface Item {
   precio_venta: number | null;
   ubicacion: string;
   activo: boolean;
-  producto_id: string;
+  nombre: string;
+  rubro: string;
 }
 
 interface Props {
   action: (prevState: ItemFormState, formData: FormData) => Promise<ItemFormState>;
-  productos: Producto[];
+  rubros: string[];
   item: Item;
   backHref: string;
 }
@@ -50,7 +46,7 @@ function SubmitButton() {
   );
 }
 
-export default function EditItemForm({ action, productos, item, backHref }: Props) {
+export default function EditItemForm({ action, rubros, item, backHref }: Props) {
   const [state, formAction] = useFormState<ItemFormState, FormData>(action, {});
 
   const err = (field: string) => state.errors?.[field]?.[0];
@@ -78,25 +74,32 @@ export default function EditItemForm({ action, productos, item, backHref }: Prop
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <label className="block text-sm text-white/60 mb-1.5">
-              Producto (familia) <span className="text-red-400">*</span>
+              Nombre del ítem <span className="text-red-400">*</span>
             </label>
-            <select
-              name="producto_id"
-              className={inputClass('producto_id')}
-              defaultValue={item.producto_id}
-            >
-              <option value="" disabled>
-                Seleccionar familia de producto
-              </option>
-              {productos.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nombre}
-                </option>
+            <input
+              name="nombre"
+              className={inputClass('nombre')}
+              defaultValue={item.nombre}
+              placeholder="Ej: 6204 2RS (20X47X14)"
+            />
+            {err('nombre') && <p className="text-red-400 text-xs mt-1">{err('nombre')}</p>}
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="block text-sm text-white/60 mb-1.5">Rubro</label>
+            <input
+              name="rubro"
+              list="rubros-existentes"
+              className={inputClass('rubro')}
+              defaultValue={item.rubro}
+              placeholder="Elegí uno de la lista o escribí uno nuevo"
+            />
+            <datalist id="rubros-existentes">
+              {rubros.map((r) => (
+                <option key={r} value={r} />
               ))}
-            </select>
-            {err('producto_id') && (
-              <p className="text-red-400 text-xs mt-1">{err('producto_id')}</p>
-            )}
+            </datalist>
+            {err('rubro') && <p className="text-red-400 text-xs mt-1">{err('rubro')}</p>}
           </div>
 
           <div>

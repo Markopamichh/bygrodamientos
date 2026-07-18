@@ -6,16 +6,23 @@ export const metadata = { title: 'Nuevo ítem — Stock Admin BYG' };
 
 export default async function NuevoItemPage() {
   const supabase = createAdminClient();
-  const { data: productosRaw } = await supabase
-    .from('productos')
-    .select('id, nombre')
-    .eq('activo', true)
-    .order('nombre');
 
-  const productos = (productosRaw ?? []).map((p) => ({
-    id: p.id as string,
-    nombre: p.nombre as string,
-  }));
+  // Rubros existentes (para el desplegable). Se pagina porque PostgREST corta en 1000.
+  const rubrosSet = new Set<string>();
+  for (let from = 0; from < 8000; from += 1000) {
+    const { data } = await supabase
+      .from('productos')
+      .select('subcategoria')
+      .not('subcategoria', 'is', null)
+      .range(from, from + 999);
+    const rows = data ?? [];
+    for (const r of rows) {
+      const v = (r.subcategoria as string | null)?.trim();
+      if (v) rubrosSet.add(v);
+    }
+    if (rows.length < 1000) break;
+  }
+  const rubros = Array.from(rubrosSet).sort((a, b) => a.localeCompare(b, 'es'));
 
   return (
     <div className="p-6 md:p-8 max-w-2xl">
@@ -36,7 +43,7 @@ export default async function NuevoItemPage() {
         </p>
       </div>
       <div className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6">
-        <ItemForm action={createItemAction} productos={productos} />
+        <ItemForm action={createItemAction} rubros={rubros} />
       </div>
     </div>
   );

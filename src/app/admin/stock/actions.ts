@@ -13,12 +13,37 @@ async function getSessionUser() {
   return user;
 }
 
+/** Genera un slug único para productos a partir del nombre. */
+async function generarSlugUnico(
+  supabase: ReturnType<typeof createAdminClient>,
+  nombre: string
+): Promise<string> {
+  const base =
+    nombre
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80) || 'item';
+
+  const { data } = await supabase.from('productos').select('slug').like('slug', `${base}%`);
+  const usados = new Set((data ?? []).map((d) => d.slug as string));
+  if (!usados.has(base)) return base;
+  for (let i = 2; i < 1000; i++) {
+    const cand = `${base}-${i}`;
+    if (!usados.has(cand)) return cand;
+  }
+  return `${base}-${Date.now()}`;
+}
+
 // ─────────────────────────────────────────────
 // CREATE ITEM
 // ─────────────────────────────────────────────
 
 const itemSchema = z.object({
-  producto_id: z.string().uuid('Seleccioná un producto'),
+  nombre: z.string().min(1, 'El nombre es requerido').max(200),
+  rubro: z.string().max(100).optional(),
   codigo: z.string().min(1, 'El código es requerido').max(50),
   fabricante: z.string().max(100).optional(),
   numero_parte: z.string().max(100).optional(),
@@ -68,10 +93,33 @@ export async function createItemAction(
   const { stock_inicial, ...rest } = parsed.data;
   const supabase = createAdminClient();
 
+  // El ítem de stock necesita un producto asociado. Se crea uno interno
+  // (activo=false) para que no aparezca en la web pública.
+  const rubro = rest.rubro?.trim() || null;
+  const slug = await generarSlugUnico(supabase, rest.nombre);
+  const { data: newProducto, error: prodError } = await supabase
+    .from('productos')
+    .insert({
+      nombre: rest.nombre,
+      slug,
+      subcategoria: rubro,
+      fabricante: rest.fabricante ?? null,
+      stock: stock_inicial,
+      precio: rest.precio_venta ?? null,
+      tipo_disponibilidad: 'stock',
+      activo: false,
+    })
+    .select('id')
+    .single();
+
+  if (prodError || !newProducto) {
+    return { error: prodError?.message ?? 'No se pudo crear el producto asociado' };
+  }
+
   const { data: newItem, error } = await supabase
     .from('items')
     .insert({
-      producto_id: rest.producto_id,
+      producto_id: newProducto.id,
       codigo: rest.codigo,
       fabricante: rest.fabricante ?? null,
       numero_parte: rest.numero_parte ?? null,
@@ -88,7 +136,11 @@ export async function createItemAction(
     .select('id')
     .single();
 
-  if (error) return { error: error.message };
+  if (error) {
+    // Evitar dejar el producto huérfano si falla la creación del ítem.
+    await supabase.from('productos').delete().eq('id', newProducto.id);
+    return { error: error.message };
+  }
 
   if (stock_inicial > 0 && newItem) {
     await supabase.from('movimientos_stock').insert({
@@ -110,7 +162,8 @@ export async function createItemAction(
 // ─────────────────────────────────────────────
 
 const updateItemSchema = z.object({
-  producto_id: z.string().uuid('Seleccioná un producto'),
+  nombre: z.string().min(1, 'El nombre es requerido').max(200),
+  rubro: z.string().max(100).optional(),
   codigo: z.string().min(1, 'El código es requerido').max(50),
   fabricante: z.string().max(100).optional(),
   numero_parte: z.string().max(100).optional(),
@@ -153,10 +206,29 @@ export async function updateItemAction(
   }
 
   const supabase = createAdminClient();
+
+  // Nombre y rubro viven en el producto asociado al ítem.
+  const { data: itemActual } = await supabase
+    .from('items')
+    .select('producto_id')
+    .eq('id', id)
+    .single();
+
+  if (itemActual?.producto_id) {
+    const { error: prodError } = await supabase
+      .from('productos')
+      .update({
+        nombre: parsed.data.nombre,
+        subcategoria: parsed.data.rubro?.trim() || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', itemActual.producto_id);
+    if (prodError) return { error: prodError.message };
+  }
+
   const { error } = await supabase
     .from('items')
     .update({
-      producto_id: parsed.data.producto_id,
       codigo: parsed.data.codigo,
       fabricante: parsed.data.fabricante ?? null,
       numero_parte: parsed.data.numero_parte ?? null,
