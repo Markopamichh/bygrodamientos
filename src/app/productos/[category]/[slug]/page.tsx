@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Image from 'next/image';
 import Container from '@/components/shared/Container';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
@@ -88,19 +88,26 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const { category, slug } = await params;
+  const { slug } = await params;
   const supabase = createPublicClient();
   const { data } = await supabase
     .from('productos')
-    .select('nombre, descripcion')
+    .select('nombre, descripcion, categoria_slug')
     .eq('slug', slug)
+    .eq('activo', true)
     .limit(1)
     .single();
-  if (!data) return { title: 'Producto no encontrado' };
+
+  if (!data) return { title: 'Producto no encontrado', robots: { index: false, follow: false } };
+
+  // El canonical siempre apunta a la categoría real del producto, nunca a la del
+  // parámetro: si no coinciden, la página redirige a esta misma URL.
+  const categoriaReal = (data.categoria_slug as string | null) ?? 'productos';
+
   return {
     title: `${data.nombre} | BYG Rodamientos Neuquén`,
     description: (data.descripcion as string | null) ?? (data.nombre as string),
-    alternates: { canonical: `/productos/${category}/${slug}` },
+    alternates: { canonical: `/productos/${categoriaReal}/${slug}` },
   };
 }
 
@@ -117,6 +124,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .single();
 
   if (!productData) notFound();
+
+  // Un producto vive en una sola categoría. Sin este chequeo el mismo contenido
+  // respondía 200 bajo cualquier categoría (incluso inexistente), generando
+  // duplicados con canonical autorreferente ("Duplicada: sin versión canónica"
+  // en Search Console). Se redirige 308 a la URL real en vez de 404 para no
+  // perder los enlaces que ya apunten a la variante equivocada.
+  const categoriaReal = productData.categoria_slug as string | null;
+  if (categoriaReal && categoriaReal !== categorySlug) {
+    permanentRedirect(`/productos/${categoriaReal}/${slug}`);
+  }
 
   const rawProduct = rowFromData(productData.id, productData as Record<string, unknown>);
   const product = mapProduct(rawProduct, categorySlug);
