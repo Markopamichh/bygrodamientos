@@ -40,6 +40,10 @@ export function NavBar({ items, className }: NavBarProps) {
             <Link
               key={item.name}
               href={item.url}
+              // En mobile solo se ve el ícono: `hidden` es display:none y saca el
+              // texto del árbol de accesibilidad, dejando el link sin nombre.
+              aria-label={item.name}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "relative cursor-pointer text-sm font-semibold px-6 py-2 rounded-full transition-colors",
                 "text-stone-600 hover:text-primary",
@@ -47,12 +51,13 @@ export function NavBar({ items, className }: NavBarProps) {
               )}
             >
               <span className="hidden md:inline">{item.name}</span>
-              <span className="md:hidden">
+              <span className="md:hidden" aria-hidden="true">
                 <Icon size={18} strokeWidth={2.5} />
               </span>
               {active && (
                 <motion.div
                   layoutId="lamp"
+                  aria-hidden="true"
                   className="absolute inset-0 w-full bg-primary/5 rounded-full -z-10"
                   initial={false}
                   transition={{
