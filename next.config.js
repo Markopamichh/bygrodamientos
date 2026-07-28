@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // Las imágenes se sirven sin pasar por el optimizador de Vercel. La cuota de
+    // Image Optimization del plan se agotaba y devolvía HTTP 402, dejando sin
+    // cargar las transformaciones no cacheadas. Los assets ya son webp y ~720px
+    // (livianos), así que se entregan directo desde el CDN de Supabase.
+    unoptimized: true,
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
