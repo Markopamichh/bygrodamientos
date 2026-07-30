@@ -255,12 +255,25 @@ export async function updateItemAction(
 // REGISTRAR MOVIMIENTO (vía RPC atómica)
 // ─────────────────────────────────────────────
 
+const opcionalNumero = z.preprocess(
+  (v) => (v === '' || v === null || v === undefined ? null : v),
+  z.coerce.number().min(0).nullable().optional()
+);
+
 const movimientoSchema = z.object({
   item_id: z.string().uuid(),
   tipo: z.enum(['venta', 'ingreso', 'ajuste', 'devolucion']),
   cantidad: z.coerce.number().int().min(1, 'La cantidad debe ser al menos 1'),
   direccion_ajuste: z.enum(['sumar', 'restar']).optional(),
   nota: z.string().max(300).optional(),
+  // Trazabilidad
+  proveedor_id: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? null : v),
+    z.string().uuid().nullable().optional()
+  ),
+  cliente_nombre: z.string().max(150).optional(),
+  factura: z.string().max(60).optional(),
+  precio_unitario: opcionalNumero,
 });
 
 export type MovimientoFormState = {
@@ -280,7 +293,17 @@ export async function registrarMovimientoAction(
     return { error: parsed.error.errors.map((e) => e.message).join(', ') };
   }
 
-  const { item_id, tipo, cantidad, direccion_ajuste, nota } = parsed.data;
+  const {
+    item_id,
+    tipo,
+    cantidad,
+    direccion_ajuste,
+    nota,
+    proveedor_id,
+    cliente_nombre,
+    factura,
+    precio_unitario,
+  } = parsed.data;
 
   let delta: number;
   if (tipo === 'venta') {
@@ -291,6 +314,9 @@ export async function registrarMovimientoAction(
     delta = cantidad;
   }
 
+  // El proveedor solo aplica a entradas; el cliente solo a ventas.
+  const esEntrada = tipo === 'ingreso' || tipo === 'devolucion';
+
   const supabase = createAdminClient();
   const { error } = await supabase.rpc('registrar_movimiento_stock', {
     p_item_id: item_id,
@@ -298,6 +324,10 @@ export async function registrarMovimientoAction(
     p_cantidad: delta,
     p_usuario_id: user.id,
     p_nota: nota ?? null,
+    p_proveedor_id: esEntrada ? proveedor_id ?? null : null,
+    p_cliente_nombre: tipo === 'venta' ? cliente_nombre?.trim() || null : null,
+    p_factura: factura?.trim() || null,
+    p_precio_unitario: precio_unitario ?? null,
   });
 
   if (error) return { error: error.message };

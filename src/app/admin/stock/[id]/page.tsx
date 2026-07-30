@@ -21,26 +21,30 @@ export default async function StockItemPage({ params }: Props) {
   const { id } = await params;
   const supabase = createAdminClient();
 
-  const [{ data: item }, { data: codigos }, { data: movimientos }] = await Promise.all([
-    supabase
-      .from('items')
-      .select(
-        'id, codigo, fabricante, numero_parte, medida_interna, medida_externa, ancho, stock_actual, stock_minimo, precio_costo, precio_venta, ubicacion, activo, created_at, updated_at, producto_id, productos(nombre)'
-      )
-      .eq('id', id)
-      .single(),
-    supabase
-      .from('item_codigos_equivalentes')
-      .select('id, marca, codigo')
-      .eq('item_id', id)
-      .order('marca'),
-    supabase
-      .from('movimientos_stock')
-      .select('id, tipo, cantidad, stock_resultante, nota, created_at')
-      .eq('item_id', id)
-      .order('created_at', { ascending: false })
-      .limit(50),
-  ]);
+  const [{ data: item }, { data: codigos }, { data: movimientos }, { data: proveedores }] =
+    await Promise.all([
+      supabase
+        .from('items')
+        .select(
+          'id, codigo, fabricante, numero_parte, medida_interna, medida_externa, ancho, stock_actual, stock_minimo, precio_costo, precio_venta, ubicacion, activo, created_at, updated_at, producto_id, productos(nombre)'
+        )
+        .eq('id', id)
+        .single(),
+      supabase
+        .from('item_codigos_equivalentes')
+        .select('id, marca, codigo')
+        .eq('item_id', id)
+        .order('marca'),
+      supabase
+        .from('movimientos_stock')
+        .select(
+          'id, tipo, cantidad, stock_resultante, nota, created_at, factura, precio_unitario, cliente_nombre, proveedores(nombre)'
+        )
+        .eq('item_id', id)
+        .order('created_at', { ascending: false })
+        .limit(50),
+      supabase.from('proveedores').select('id, nombre').order('nombre'),
+    ]);
 
   if (!item) notFound();
 
@@ -101,7 +105,13 @@ export default async function StockItemPage({ params }: Props) {
               </svg>
               Editar
             </Link>
-            <RegistrarMovimiento itemId={id} />
+            <RegistrarMovimiento
+              itemId={id}
+              proveedores={(proveedores ?? []).map((p) => ({
+                id: p.id as string,
+                nombre: p.nombre as string,
+              }))}
+            />
           </div>
         </div>
       </div>
@@ -198,8 +208,17 @@ export default async function StockItemPage({ params }: Props) {
                 <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider">
                   Cantidad
                 </th>
+                <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider">
+                  Proveedor / Cliente
+                </th>
                 <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">
-                  Stock resultante
+                  Factura
+                </th>
+                <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden lg:table-cell">
+                  Precio unit.
+                </th>
+                <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden sm:table-cell">
+                  Stock result.
                 </th>
                 <th className="text-left px-4 py-3 text-xs text-white/40 font-medium uppercase tracking-wider hidden md:table-cell">
                   Nota
@@ -224,6 +243,21 @@ export default async function StockItemPage({ params }: Props) {
                       {(m.cantidad as number) >= 0 ? '+' : ''}
                       {m.cantidad as number}
                     </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-white/70 text-sm">
+                      {(m.proveedores as unknown as { nombre: string } | null)?.nombre ??
+                        (m.cliente_nombre as string | null) ??
+                        '—'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 hidden sm:table-cell">
+                    <span className="text-white/50 text-sm font-mono">
+                      {(m.factura as string | null) ?? '—'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 hidden lg:table-cell">
+                    <span className="text-white/50 text-sm">{fmt(m.precio_unitario as number | null)}</span>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
                     <span className="text-white/60 text-sm font-mono">{m.stock_resultante as number}</span>

@@ -4,8 +4,14 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { useState, useEffect } from 'react';
 import { registrarMovimientoAction, type MovimientoFormState } from '../actions';
 
+interface Proveedor {
+  id: string;
+  nombre: string;
+}
+
 interface Props {
   itemId: string;
+  proveedores: Proveedor[];
 }
 
 const TIPOS = [
@@ -38,9 +44,11 @@ function ConfirmButton() {
 
 function MovimientoForm({
   itemId,
+  proveedores,
   onSuccess,
 }: {
   itemId: string;
+  proveedores: Proveedor[];
   onSuccess: () => void;
 }) {
   const [state, formAction] = useFormState<MovimientoFormState, FormData>(
@@ -141,6 +149,74 @@ function MovimientoForm({
         </div>
       )}
 
+      {/* Trazabilidad — Proveedor (solo entradas) */}
+      {(tipo === 'ingreso' || tipo === 'devolucion') && (
+        <div>
+          <label className="block text-sm text-white/60 mb-1.5">
+            Proveedor <span className="text-white/30">(a quién se le compró)</span>
+          </label>
+          <select
+            name="proveedor_id"
+            defaultValue=""
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/30"
+          >
+            <option value="">Sin especificar</option>
+            {proveedores.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Trazabilidad — Cliente (solo ventas) */}
+      {tipo === 'venta' && (
+        <div>
+          <label className="block text-sm text-white/60 mb-1.5">
+            Cliente <span className="text-white/30">(a quién se le vendió)</span>
+          </label>
+          <input
+            name="cliente_nombre"
+            type="text"
+            maxLength={150}
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-white/25 text-sm focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/30"
+            placeholder="Ej: Taller González / Consumidor final"
+          />
+        </div>
+      )}
+
+      {/* Trazabilidad — Factura y precio (entradas y ventas) */}
+      {tipo !== 'ajuste' && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm text-white/60 mb-1.5">
+              Factura <span className="text-white/30">(N°)</span>
+            </label>
+            <input
+              name="factura"
+              type="text"
+              maxLength={60}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-white/25 text-sm focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/30"
+              placeholder="Ej: A-0001-00001234"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-white/60 mb-1.5">
+              Precio unit. <span className="text-white/30">(ARS)</span>
+            </label>
+            <input
+              name="precio_unitario"
+              type="number"
+              min="0"
+              step="0.01"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-white placeholder-white/25 text-sm focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/30"
+              placeholder="Opcional"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Nota */}
       <div>
         <label className="block text-sm text-white/60 mb-1.5">
@@ -178,7 +254,7 @@ function MovimientoForm({
   );
 }
 
-export default function RegistrarMovimiento({ itemId }: Props) {
+export default function RegistrarMovimiento({ itemId, proveedores }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [formKey, setFormKey] = useState(0);
 
@@ -224,7 +300,7 @@ export default function RegistrarMovimiento({ itemId }: Props) {
               </button>
             </div>
             <div className="p-5">
-              <MovimientoForm key={formKey} itemId={itemId} onSuccess={handleClose} />
+              <MovimientoForm key={formKey} itemId={itemId} proveedores={proveedores} onSuccess={handleClose} />
             </div>
           </div>
         </div>
