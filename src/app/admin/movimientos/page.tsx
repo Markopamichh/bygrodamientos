@@ -83,12 +83,23 @@ export default async function MovimientosPage({
 
   return (
     <div className="p-6 md:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Movimientos</h1>
-        <p className="text-white/40 text-sm mt-0.5">
-          {movimientos.length} movimiento{movimientos.length !== 1 ? 's' : ''}
-          {movimientos.length === 300 ? ' (últimos 300)' : ''}
-        </p>
+      <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Movimientos</h1>
+          <p className="text-white/40 text-sm mt-0.5">
+            {movimientos.length} movimiento{movimientos.length !== 1 ? 's' : ''}
+            {movimientos.length === 300 ? ' (últimos 300)' : ''}
+          </p>
+        </div>
+        <Link
+          href="/admin/movimientos/nuevo"
+          className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-4 py-2.5 rounded-lg text-sm transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Nuevo movimiento
+        </Link>
       </div>
 
       {/* Filtros */}
@@ -168,6 +179,7 @@ export default async function MovimientosPage({
                 <Th className="hidden sm:table-cell">Factura</Th>
                 <Th className="hidden lg:table-cell">Precio unit.</Th>
                 <Th className="hidden md:table-cell">Nota</Th>
+                <Th className="text-right">Acciones</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -206,6 +218,30 @@ export default async function MovimientosPage({
                   </td>
                   <td className="px-4 py-3 hidden md:table-cell">
                     <span className="text-white/40 text-sm truncate block max-w-[160px]">{m.nota ?? '—'}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link
+                        href={`/admin/movimientos/${m.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Ver en otra solapa"
+                        className="p-1.5 rounded text-white/30 hover:text-yellow-400 hover:bg-yellow-400/10 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                        </svg>
+                      </Link>
+                      <Link
+                        href={`/admin/movimientos/${m.id}/editar`}
+                        title="Editar"
+                        className="p-1.5 rounded text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                        </svg>
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}

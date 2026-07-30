@@ -456,3 +456,108 @@ export async function importStockAction(rows: ImportRow[]): Promise<ImportResult
   revalidatePath('/admin/stock');
   return { updated, skipped, errors };
 }
+
+// ─────────────────────────────────────────────
+// EDITAR METADATA DE MOVIMIENTO (no toca stock)
+// Solo proveedor/cliente/factura/precio/nota. La cantidad y el tipo no se
+// editan porque cambiarían el stock; para eso se elimina y se recarga.
+// ─────────────────────────────────────────────
+
+const editarMovimientoSchema = z.object({
+  proveedor_id: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? null : v),
+    z.string().uuid().nullable().optional()
+  ),
+  cliente_nombre: z.string().max(150).optional(),
+  factura: z.string().max(60).optional(),
+  precio_unitario: opcionalNumero,
+  nota: z.string().max(300).optional(),
+});
+
+export async function editarMovimientoAction(
+  id: string,
+  _prevState: MovimientoFormState,
+  formData: FormData
+): Promise<MovimientoFormState> {
+  const user = await getSessionUser();
+  if (!user) redirect('/admin/login');
+
+  const parsed = editarMovimientoSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { error: parsed.error.errors.map((e) => e.message).join(', ') };
+  }
+
+  const supabase = createAdminClient();
+  const { data: mov } = await supabase
+    .from('movimientos_stock')
+    .select('tipo')
+    .eq('id', id)
+    .single();
+
+  const esEntrada = mov?.tipo === 'ingreso' || mov?.tipo === 'devolucion';
+  const { error } = await supabase
+    .from('movimientos_stock')
+    .update({
+      proveedor_id: esEntrada ? parsed.data.proveedor_id ?? null : null,
+      cliente_nombre: mov?.tipo === 'venta' ? parsed.data.cliente_nombre?.trim() || null : null,
+      factura: parsed.data.factura?.trim() || null,
+      precio_unitario: parsed.data.precio_unitario ?? null,
+      nota: parsed.data.nota?.trim() || null,
+    })
+    .eq('id', id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/movimientos');
+  revalidatePath(`/admin/movimientos/${id}`);
+  redirect(`/admin/movimientos/${id}`);
+}
+
+// ─────────────────────────────────────────────
+// ELIMINAR MOVIMIENTO (revierte el stock, vía RPC atómica)
+// ─────────────────────────────────────────────
+
+export async function eliminarMovimientoAction(id: string): Promise<void> {
+  const user = await getSessionUser();
+  if (!user) redirect('/admin/login');
+
+  const supabase = createAdminClient();
+  const { error } = await supabase.rpc('eliminar_movimiento_stock', {
+    p_mov_id: id,
+    p_usuario_id: user.id,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/admin/movimientos');
+  revalidatePath('/admin/stock');
+  redirect('/admin/movimientos');
+}
+
+// ─────────────────────────────────────────────
+// BUSCAR ÍTEM POR CÓDIGO (para registrar movimiento desde la vista global)
+// ─────────────────────────────────────────────
+
+export type ItemBusqueda = { id: string; codigo: string; nombre: string };
+
+export async function buscarItemsPorCodigo(q: string): Promise<ItemBusqueda[]> {
+  await requireAuthStock();
+  if (!q || q.trim().length < 2) return [];
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('items')
+    .select('id, codigo, productos(nombre)')
+    .ilike('codigo', `%${q.trim()}%`)
+    .order('codigo')
+    .limit(20);
+  return (data ?? []).map((d) => ({
+    id: d.id as string,
+    codigo: d.codigo as string,
+    nombre: (d.productos as unknown as { nombre: string } | null)?.nombre ?? '',
+  }));
+}
+
+async function requireAuthStock() {
+  const user = await getSessionUser();
+  if (!user) redirect('/admin/login');
+  return user;
+}
