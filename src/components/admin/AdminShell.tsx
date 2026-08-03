@@ -17,7 +17,7 @@ export default function AdminShell({ children, userEmail, lowStockCount }: Admin
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex overflow-hidden"
+      className="admin-root fixed inset-0 z-[9999] flex overflow-hidden"
       style={{ fontFamily: 'var(--font-body)', background: '#111' }}
     >
       {showSidebar && (

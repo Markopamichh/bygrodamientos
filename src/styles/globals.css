@@ -20,6 +20,31 @@
   }
 }
 
+@layer base {
+  /* El panel admin es de tema oscuro. El desplegable de un <select> lo dibuja
+     el sistema operativo, no el CSS de la página: sin declarar el esquema de
+     color, en equipos con tema claro las opciones quedaban blancas sobre
+     blanco (ilegibles). `color-scheme: dark` hace que el navegador dibuje el
+     popup nativo en oscuro; los colores de <option> cubren los navegadores
+     que los respetan (Firefox y Chrome en Windows/Linux). */
+  .admin-root select,
+  .admin-root input,
+  .admin-root textarea {
+    color-scheme: dark;
+  }
+
+  .admin-root select option,
+  .admin-root select optgroup {
+    background-color: #1f1f1f;
+    color: #ffffff;
+  }
+
+  /* El listado nativo de un datalist (rubros) sigue el mismo criterio. */
+  .admin-root input[list] {
+    color-scheme: dark;
+  }
+}
+
 @layer components {
   .container-custom {
     @apply max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8;
