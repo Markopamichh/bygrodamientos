@@ -23,7 +23,8 @@ export default async function NuevoMovimientoPage() {
         </Link>
         <h1 className="text-2xl font-bold text-white">Nuevo movimiento</h1>
         <p className="text-white/40 text-sm mt-0.5">
-          Buscá el ítem por código y registrá el ingreso, venta, devolución o ajuste.
+          Cargá los datos de la operación y agregá todos los ítems que necesites. Una
+          factura puede tener varios ítems: se registran juntos con el mismo N°.
         </p>
       </div>
 

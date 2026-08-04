@@ -561,3 +561,94 @@ async function requireAuthStock() {
   if (!user) redirect('/admin/login');
   return user;
 }
+
+// ─────────────────────────────────────────────
+// REGISTRAR MOVIMIENTO MÚLTIPLE
+// Una factura suele traer varios ítems. Los datos de cabecera (tipo, proveedor,
+// cliente, factura) se comparten y cada renglón se guarda como un movimiento
+// propio, todos con la misma factura. Se usa la RPC por renglón para que cada
+// uno actualice el stock de forma atómica.
+// ─────────────────────────────────────────────
+
+export type LineaMovimiento = {
+  item_id: string;
+  codigo: string;
+  cantidad: number;
+  precio_unitario: number | null;
+};
+
+export type MovimientoMultipleInput = {
+  tipo: 'venta' | 'ingreso' | 'ajuste' | 'devolucion';
+  direccion_ajuste?: 'sumar' | 'restar';
+  proveedor_id?: string | null;
+  cliente_nombre?: string | null;
+  factura?: string | null;
+  nota?: string | null;
+  lineas: LineaMovimiento[];
+};
+
+export type MovimientoMultipleState = {
+  error?: string;
+  /** Errores por renglón, para señalar cuáles fallaron. */
+  fallidos?: { codigo: string; motivo: string }[];
+  registrados?: number;
+  success?: boolean;
+};
+
+export async function registrarMovimientoMultipleAction(
+  input: MovimientoMultipleInput
+): Promise<MovimientoMultipleState> {
+  const user = await getSessionUser();
+  if (!user) redirect('/admin/login');
+
+  const { tipo, direccion_ajuste, proveedor_id, cliente_nombre, factura, nota, lineas } = input;
+
+  if (!lineas?.length) return { error: 'Agregá al menos un ítem' };
+  if (!['venta', 'ingreso', 'ajuste', 'devolucion'].includes(tipo)) {
+    return { error: 'Tipo de movimiento inválido' };
+  }
+  for (const l of lineas) {
+    if (!l.item_id) return { error: 'Hay un renglón sin ítem seleccionado' };
+    if (!Number.isInteger(l.cantidad) || l.cantidad < 1) {
+      return { error: `Cantidad inválida en ${l.codigo || 'un renglón'}` };
+    }
+  }
+
+  const esEntrada = tipo === 'ingreso' || tipo === 'devolucion';
+  const supabase = createAdminClient();
+
+  const fallidos: { codigo: string; motivo: string }[] = [];
+  let registrados = 0;
+
+  for (const l of lineas) {
+    let delta: number;
+    if (tipo === 'venta') delta = -l.cantidad;
+    else if (tipo === 'ajuste' && direccion_ajuste === 'restar') delta = -l.cantidad;
+    else delta = l.cantidad;
+
+    const { error } = await supabase.rpc('registrar_movimiento_stock', {
+      p_item_id: l.item_id,
+      p_tipo: tipo,
+      p_cantidad: delta,
+      p_usuario_id: user.id,
+      p_nota: nota?.trim() || null,
+      p_proveedor_id: esEntrada ? proveedor_id ?? null : null,
+      p_cliente_nombre: tipo === 'venta' ? cliente_nombre?.trim() || null : null,
+      p_factura: factura?.trim() || null,
+      p_precio_unitario: l.precio_unitario ?? null,
+    });
+
+    // Se sigue con los demás renglones: los que entraron quedan registrados y
+    // se informa cuáles fallaron (ej. stock insuficiente en una venta).
+    if (error) fallidos.push({ codigo: l.codigo, motivo: error.message });
+    else registrados++;
+  }
+
+  revalidatePath('/admin/movimientos');
+  revalidatePath('/admin/stock');
+
+  if (registrados === 0) {
+    return { error: 'No se pudo registrar ningún ítem', fallidos };
+  }
+  return { success: true, registrados, fallidos: fallidos.length ? fallidos : undefined };
+}
