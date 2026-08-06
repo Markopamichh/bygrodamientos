@@ -14,18 +14,18 @@ const CDN = 'https://ss-cnt-001c.esmsv.com/r/content/host1/bdd8cf8fe5a4915516c74
 
 export const MARCAS_DESTACADAS: MarcaDestacada[] = [
   {
-    nombre: 'NTN · SNR · BOWER',
-    origen: 'Japón / Francia',
-    tipo: 'Distribuidor oficial en Argentina',
-    descripcion:
-      'NTN Corporation es uno de los fabricantes de rodamientos más grandes del mundo, con más de 100 años de innovación. SNR, su filial europea, y BOWER completan una línea completa de rodamientos para aplicaciones industriales y automotrices de alta exigencia.',
-  },
-  {
-    nombre: 'SKF',
-    origen: 'Suecia',
+    nombre: 'NKE',
+    origen: 'Austria',
     tipo: 'Marca comercializada',
     descripcion:
-      'Líder mundial en rodamientos, sellos, lubricación y sistemas de transmisión de potencia. SKF combina más de 100 años de experiencia con tecnología de vanguardia para ofrecer soluciones que maximizan la eficiencia y vida útil de la maquinaria.',
+      'NKE Austria es un fabricante europeo de rodamientos de alta calidad con raíces en la tradición industrial austríaca de Steyr. Produce rodamientos estándar y especiales para aplicaciones industriales exigentes, combinando ingeniería europea con excelente relación precio-rendimiento.',
+  },
+  {
+    nombre: 'NTN · SNR · BOWER',
+    origen: 'Japón / Francia',
+    tipo: 'Marca comercializada',
+    descripcion:
+      'NTN Corporation es uno de los fabricantes de rodamientos más grandes del mundo, con más de 100 años de innovación. SNR, su filial europea, y BOWER completan una línea completa de rodamientos para aplicaciones industriales y automotrices de alta exigencia.',
   },
   {
     nombre: 'FAG · INA',
@@ -51,14 +51,14 @@ export const MARCAS_DESTACADAS: MarcaDestacada[] = [
   {
     nombre: 'RINGSPANN',
     origen: 'Alemania',
-    tipo: 'Distribución exclusiva en Argentina',
+    tipo: 'Marca comercializada',
     descripcion:
       'RINGSPANN es especialista en elementos de fijación de cubos, frenos industriales, embragues de rodillos y amortiguadores de torsión. Con ingeniería alemana de precisión, sus componentes son esenciales en aplicaciones de transmisión de alta demanda.',
   },
   {
     nombre: 'RKB',
     origen: 'Suiza',
-    tipo: 'Distribuidor oficial en Argentina',
+    tipo: 'Marca comercializada',
     descripcion:
       'RKB Bearing Industries, con sede en Suiza, produce rodamientos de alta performance para la industria pesada, minería, cementeras y acerías. Sus rodamientos están diseñados para operar bajo cargas extremas y condiciones ambientales adversas.',
   },
@@ -68,6 +68,13 @@ export const MARCAS_DESTACADAS: MarcaDestacada[] = [
     tipo: 'Marca comercializada',
     descripcion:
       'OPTIBELT es un fabricante alemán líder en correas de transmisión de alta calidad: correas en V, correas dentadas y correas sincrónicas. Sus productos destacan por su eficiencia energética, durabilidad y precisión en la transmisión de potencia.',
+  },
+  {
+    nombre: 'SKF',
+    origen: 'Suecia',
+    tipo: 'Marca comercializada',
+    descripcion:
+      'Líder mundial en rodamientos, sellos, lubricación y sistemas de transmisión de potencia. SKF combina más de 100 años de experiencia con tecnología de vanguardia para ofrecer soluciones que maximizan la eficiencia y vida útil de la maquinaria.',
   },
 ];
 
