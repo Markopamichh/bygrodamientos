@@ -64,7 +64,7 @@ const localBusinessJsonLd = {
   name: 'BYG Rodamientos',
   description: 'Distribuidora de rodamientos, retenes, correas y componentes industriales en Neuquén, Argentina.',
   url: SITE_URL,
-  telephone: '+54-299-4462546',
+  telephone: '+54-299-4462562',
   email: 'bygrodamientos@gmail.com',
   address: {
     '@type': 'PostalAddress',

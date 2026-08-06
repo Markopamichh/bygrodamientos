@@ -10,7 +10,7 @@ const BYG = {
   nombre:    'BYG Rodamientos',
   cuit:      '20-20794031-4',
   direccion: 'Collon Cura 240, Neuquén (8300)',
-  telefono:  '0299-4462546',
+  telefono:  '0299-4462562',
   email:     'bygrodamientos@gmail.com',
 };
 

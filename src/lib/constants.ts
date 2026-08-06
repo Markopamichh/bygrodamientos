@@ -3,8 +3,8 @@ export const SITE_DESCRIPTION = 'Distribuidores de rodamientos industriales, ret
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bygrodamientos.com.ar';
 
 export const CONTACT = {
-  phone: '0299-4462546',
-  phone2: '0299-4462547',
+  phone: '0299-4462562',
+  phone2: '0299-4462562',
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5492994019699',
   email: 'bygrodamientos@gmail.com',
   address: 'Collon Cura 240, Neuquén, Argentina',

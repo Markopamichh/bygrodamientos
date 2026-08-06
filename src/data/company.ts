@@ -4,8 +4,8 @@ export const companyInfo: ContactInfo = {
   address: 'Collon Cura 240',
   city: 'Neuquén',
   province: 'Neuquén',
-  phone: '0299-4462546',
-  phone2: '0299-4462547',
+  phone: '0299-4462562',
+  phone2: '0299-4462562',
   whatsapp: '5492994019699',
   email: 'bygrodamientos@gmail.com',
   hours: {
