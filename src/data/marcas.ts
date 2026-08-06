@@ -72,6 +72,8 @@ export const MARCAS_DESTACADAS: MarcaDestacada[] = [
 ];
 
 export const MARCAS_GRID: MarcaLogo[] = [
+  { nombre: 'NKE',         logoUrl: '/images/marcas/nke.jpg' },
+  { nombre: 'RETENES SAV', logoUrl: '/images/marcas/sav.jpg' },
   { nombre: 'SKF',         logoUrl: `${CDN}/descarga%20%2831%29.webp` },
   { nombre: 'SEAL MASTER', logoUrl: `${CDN}/descarga%20%285%29_A7kmgBwTXJ.webp` },
   { nombre: 'INA',         logoUrl: `${CDN}/descarga%20%2812%29.webp` },
@@ -100,7 +102,6 @@ export const MARCAS_GRID: MarcaLogo[] = [
   { nombre: 'MARTIN',      logoUrl: `${CDN}/descarga%20%2823%29_kvlB1AFpdg.webp` },
   { nombre: 'MORSE',       logoUrl: `${CDN}/descarga%20%2825%29.webp` },
   { nombre: 'TSUBAKI',     logoUrl: `${CDN}/descarga%20%286%29.webp` },
-  { nombre: 'DBH',         logoUrl: `${CDN}/descarga%20%2826%29.webp` },
 ];
 
 // Las más conocidas para el strip del home

@@ -16,7 +16,7 @@ export default function BrandsStrip() {
             Trabajamos con los mejores fabricantes
           </h2>
           <p className="text-stone-500 mt-2 max-w-xl mx-auto text-sm">
-            Distribuimos rodamientos y accesorios de las marcas líderes a nivel mundial.
+            Rodamientos y accesorios de las marcas líderes a nivel mundial.
           </p>
         </div>
       </Container>
