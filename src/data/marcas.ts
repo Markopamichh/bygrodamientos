@@ -56,13 +56,6 @@ export const MARCAS_DESTACADAS: MarcaDestacada[] = [
       'RINGSPANN es especialista en elementos de fijación de cubos, frenos industriales, embragues de rodillos y amortiguadores de torsión. Con ingeniería alemana de precisión, sus componentes son esenciales en aplicaciones de transmisión de alta demanda.',
   },
   {
-    nombre: 'RKB',
-    origen: 'Suiza',
-    tipo: 'Marca comercializada',
-    descripcion:
-      'RKB Bearing Industries, con sede en Suiza, produce rodamientos de alta performance para la industria pesada, minería, cementeras y acerías. Sus rodamientos están diseñados para operar bajo cargas extremas y condiciones ambientales adversas.',
-  },
-  {
     nombre: 'OPTIBELT',
     origen: 'Alemania',
     tipo: 'Marca comercializada',
