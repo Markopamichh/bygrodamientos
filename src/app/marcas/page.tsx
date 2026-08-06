@@ -37,12 +37,12 @@ export default function MarcasPage() {
       <section className="py-20 bg-white">
         <Container>
           <div className="text-center mb-14">
-            <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-2">Distribución oficial</p>
+            <p className="text-xs font-semibold tracking-widest text-primary uppercase mb-2">MARCAS OFICIALES</p>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-secondary">
               Marcas principales que comercializamos
             </h2>
             <p className="text-stone-500 mt-3 max-w-2xl mx-auto">
-              Representamos oficialmente a fabricantes de clase mundial, lo que nos permite ofrecerte
+              Fabricantes de clase mundial, lo que nos permite ofrecerte
               productos originales con soporte técnico y garantía respaldada.
             </p>
           </div>
