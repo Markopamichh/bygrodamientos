@@ -148,7 +148,7 @@ export default function Footer() {
             rel="noopener noreferrer"
             className="hover:text-stone-400 transition-colors duration-300"
           >
-            Desarrollado por Marko Pamich
+            Designed & developed by Marko Pamich
           </a>
         </div>
       </Container>
