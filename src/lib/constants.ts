@@ -1,3 +1,5 @@
+export const GTM_ID = 'GTM-KCVP42TD';
+
 export const SITE_NAME = 'BYG Rodamientos';
 export const SITE_DESCRIPTION = 'Distribuidores de rodamientos industriales, retenes y repuestos en Neuquén. Más de 300 clientes. Asesoramiento especializado y stock permanente.';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bygrodamientos.com.ar';
