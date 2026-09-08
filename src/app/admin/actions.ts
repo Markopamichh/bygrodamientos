@@ -119,6 +119,22 @@ export async function loginAction(
     };
   }
 
+  // Auto-crear o actualizar el perfil con rol 'empleado' por defecto
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const admin = createAdminClient();
+    await admin.from('perfiles').upsert({
+      id: user.id,
+      rol: 'empleado',
+    }).select().single();
+
+    // Si no hay ningún admin, el primer usuario en loguearse se vuelve admin
+    const { count } = await admin.from('perfiles').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
+    if ((count ?? 0) === 0) {
+      await admin.from('perfiles').update({ rol: 'admin' }).eq('id', user.id);
+    }
+  }
+
   redirect('/admin/dashboard');
 }
 
