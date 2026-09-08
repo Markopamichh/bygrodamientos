@@ -36,3 +36,14 @@ export interface LoginAttemptRow {
   ip_address: string | null;
   attempted_at: string;
 }
+
+export interface ErrorLogRow {
+  id: string;
+  created_at: string;
+  tipo: string;
+  mensaje: string;
+  stack: string | null;
+  ruta: string | null;
+  usuario_id: string | null;
+  metadata: Record<string, unknown> | null;
+}

@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createAuthClient, createAdminClient } from '@/lib/supabase/server';
+import { logError } from '@/lib/logger';
+
 
 
 async function getSessionUser() {
@@ -526,4 +528,106 @@ export async function importProductsAction(
   }
 
   return { inserted, errors };
+}
+
+// ─────────────────────────────────────────────
+// EJEMPLO: Server Action con logError + try/catch
+// ─────────────────────────────────────────────
+export type ProcesarPagoState = { success?: boolean; error?: string };
+
+export async function procesarPagoAction(
+  _prevState: ProcesarPagoState,
+  formData: FormData
+): Promise<ProcesarPagoState> {
+  const user = await getSessionUser();
+  if (!user) return { error: 'No autorizado' };
+
+  const monto = Number(formData.get('monto'));
+  const metodoPago = formData.get('metodo_pago') as string;
+
+  if (!monto || monto <= 0) {
+    await logError({
+      tipo: 'validation_error',
+      mensaje: 'Monto inválido en procesarPagoAction',
+      metadata: { monto, metodoPago, usuario_id: user.id },
+    });
+    return { error: 'Monto inválido' };
+  }
+
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from('pagos').insert({
+      usuario_id: user.id,
+      monto,
+      metodo_pago: metodoPago,
+      estado: 'pendiente',
+      creado_en: new Date().toISOString(),
+    });
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (e) {
+    const mensaje = e instanceof Error ? e.message : String(e);
+    const stack = e instanceof Error ? e.stack : undefined;
+
+    await logError({
+      tipo: 'db_error',
+      mensaje,
+      stack,
+      ruta: '/admin/pagos/procesar',
+      usuario_id: user.id ?? undefined,
+      metadata: { monto, metodoPago },
+    });
+
+    return { error: 'Error al procesar el pago' };
+  }
+}
+
+// ─────────────────────────────────────────────
+// OBTENER LOGS DE ERRORES
+// ─────────────────────────────────────────────
+export type ErrorLogRow = {
+  id: string;
+  created_at: string;
+  tipo: string;
+  mensaje: string;
+  stack: string | null;
+  ruta: string | null;
+  usuario_id: string | null;
+  metadata: Record<string, unknown> | null;
+  perfil_email: string | null;
+};
+
+export async function fetchErrorLogs(): Promise<ErrorLogRow[]> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('error_logs')
+    .select(`
+      id,
+      created_at,
+      tipo,
+      mensaje,
+      stack,
+      ruta,
+      usuario_id,
+      metadata,
+      perfiles:usuario_id (email)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  const rows = (data ?? []).map((row: Record<string, unknown>) => ({
+    id: row.id as string,
+    created_at: row.created_at as string,
+    tipo: row.tipo as string,
+    mensaje: row.mensaje as string,
+    stack: (row.stack as string) ?? null,
+    ruta: (row.ruta as string) ?? null,
+    usuario_id: (row.usuario_id as string) ?? null,
+    metadata: (row.metadata as Record<string, unknown>) ?? null,
+    perfil_email: (row.perfiles as Record<string, unknown>)?.email as string | null ?? null,
+  }));
+
+  return rows;
 }
