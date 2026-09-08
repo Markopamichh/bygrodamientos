@@ -9,6 +9,7 @@ import { logError } from '@/lib/logger';
 
 
 
+
 async function getSessionUser() {
   const supabase = await createAuthClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -631,4 +632,61 @@ export async function fetchErrorLogs(): Promise<ErrorLogRow[]> {
   }));
 
   return rows;
+}
+
+// ─────────────────────────────────────────────
+// GESTIÓN DE PERFILES
+// ─────────────────────────────────────────────
+export type PerfilRow = {
+  id: string;
+  email: string;
+  rol: string;
+};
+
+export async function fetchPerfiles(): Promise<PerfilRow[]> {
+  await requireRole('admin');
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('perfiles')
+    .select('id, rol')
+    .order('rol');
+  const profiles = (data ?? []).map((row: Record<string, unknown>) => ({
+    id: row.id as string,
+    rol: row.rol as string,
+  }));
+
+  const enriched = await Promise.all(
+    profiles.map(async (p) => {
+      const { data: { user } } = await supabase.auth.admin.getUserById(p.id);
+      return { ...p, email: user?.email ?? '' };
+    })
+  );
+
+  return enriched;
+}
+
+export async function updateUserRole(
+  userId: string,
+  rol: 'admin' | 'empleado'
+): Promise<{ error?: string }> {
+  await requireRole('admin');
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from('perfiles')
+    .update({ rol })
+    .eq('id', userId);
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function changeUserRoleAction(
+  userId: string,
+  currentRole: string
+): Promise<{ error?: string }> {
+  'use server';
+  await requireRole('admin');
+  const newRole: 'admin' | 'empleado' = currentRole === 'admin' ? 'empleado' : 'admin';
+  const result = await updateUserRole(userId, newRole);
+  if (!result.error) revalidatePath('/admin/perfiles');
+  return result;
 }
