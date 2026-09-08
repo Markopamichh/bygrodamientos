@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { createAuthClient, createAdminClient } from '@/lib/supabase/server';
+import { createAuthClient, createAdminClient, requireRole } from '@/lib/supabase/server';
 import { logError } from '@/lib/logger';
 
 
@@ -600,6 +600,7 @@ export type ErrorLogRow = {
 };
 
 export async function fetchErrorLogs(): Promise<ErrorLogRow[]> {
+  await requireRole('admin');
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('error_logs')

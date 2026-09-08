@@ -1,4 +1,14 @@
 import { fetchErrorLogs } from '@/app/admin/actions';
+import { getUserRole } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
+
+async function requireAdmin() {
+  const role = await getUserRole();
+  if (role !== 'admin') redirect('/admin/dashboard');
+}
+
+export const dynamic = 'force-dynamic';
+export const metadata = { title: 'Errores — Admin BYG' };
 
 function timeAgo(date: string) {
   const msAgo = Date.now() - new Date(date).getTime();
@@ -12,9 +22,6 @@ function timeAgo(date: string) {
   return `hace ${d} días`;
 }
 
-export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Errores — Admin BYG' };
-
 const tipoColors: Record<string, string> = {
   db_error: 'bg-red-500/20 text-red-400',
   auth_error: 'bg-orange-500/20 text-orange-400',
@@ -24,6 +31,7 @@ const tipoColors: Record<string, string> = {
 };
 
 export default async function ErroresPage() {
+  await requireAdmin();
   const logs = await fetchErrorLogs();
 
   return (

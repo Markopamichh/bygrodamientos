@@ -128,6 +128,7 @@ interface AdminSidebarProps {
   onClose?: () => void;
   userEmail: string | null;
   lowStockCount: number;
+  userRole: 'admin' | 'empleado' | null;
 }
 
 export default function AdminSidebar({
@@ -135,8 +136,14 @@ export default function AdminSidebar({
   onClose,
   userEmail,
   lowStockCount,
+  userRole,
 }: AdminSidebarProps) {
   const pathname = usePathname();
+
+  const visibleGroups = navGroups.filter((group) => {
+    if (group.label === 'Sistema') return userRole === 'admin';
+    return true;
+  });
 
   function isActive(href: string) {
     return pathname === href || (href !== '/admin/dashboard' && pathname.startsWith(href));
@@ -175,7 +182,7 @@ export default function AdminSidebar({
 
       {/* Navigation */}
       <nav className="flex-1 py-3 pr-3 pl-0 overflow-y-auto">
-        {navGroups.map((group, gi) => (
+        {visibleGroups.map((group, gi) => (
           <div key={gi} className={gi > 0 ? 'mt-4' : ''}>
             {group.label && (
               <p className="ml-3 px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/25">

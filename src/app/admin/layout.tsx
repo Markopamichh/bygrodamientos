@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import AdminShell from '@/components/admin/AdminShell';
-import { createAuthClient, createAdminClient } from '@/lib/supabase/server';
+import { createAuthClient, createAdminClient, getUserRole } from '@/lib/supabase/server';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createAuthClient();
@@ -21,17 +21,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   let lowStockCount = 0;
+  let userRole: 'admin' | 'empleado' | null = null;
   if (user) {
     const admin = createAdminClient();
-    const { data } = await admin
-      .from('items')
-      .select('stock_actual, stock_minimo')
-      .eq('activo', true);
-    lowStockCount = (data ?? []).filter((i) => i.stock_actual <= i.stock_minimo).length;
+    const [{ data: stockData }, role] = await Promise.all([
+      admin.from('items').select('stock_actual, stock_minimo').eq('activo', true),
+      getUserRole(),
+    ]);
+    lowStockCount = (stockData ?? []).filter((i: { stock_actual: number; stock_minimo: number }) => i.stock_actual <= i.stock_minimo).length;
+    userRole = role;
   }
 
   return (
-    <AdminShell userEmail={user?.email ?? null} lowStockCount={lowStockCount}>
+    <AdminShell userEmail={user?.email ?? null} lowStockCount={lowStockCount} userRole={userRole}>
       {children}
     </AdminShell>
   );

@@ -8,9 +8,10 @@ interface AdminShellProps {
   children: React.ReactNode;
   userEmail: string | null;
   lowStockCount: number;
+  userRole: 'admin' | 'empleado' | null;
 }
 
-export default function AdminShell({ children, userEmail, lowStockCount }: AdminShellProps) {
+export default function AdminShell({ children, userEmail, lowStockCount, userRole }: AdminShellProps) {
   const pathname = usePathname();
   const showSidebar = pathname !== '/admin/login';
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -34,6 +35,7 @@ export default function AdminShell({ children, userEmail, lowStockCount }: Admin
             onClose={() => setSidebarOpen(false)}
             userEmail={userEmail}
             lowStockCount={lowStockCount}
+            userRole={userRole}
           />
         </>
       )}

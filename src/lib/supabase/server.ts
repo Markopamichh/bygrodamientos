@@ -46,3 +46,26 @@ export async function requireAuth() {
   if (!user) throw new Error('No autorizado');
   return user;
 }
+
+export async function getUserRole(): Promise<'admin' | 'empleado' | null> {
+  try {
+    const supabase = await createAuthClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    const { data } = await createAdminClient()
+      .from('perfiles')
+      .select('rol')
+      .eq('id', user.id)
+      .single();
+
+    return (data?.rol as 'admin' | 'empleado') ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function requireRole(role: 'admin' | 'empleado') {
+  const userRole = await getUserRole();
+  if (userRole !== role) throw new Error('No autorizado');
+}
