@@ -44,6 +44,7 @@ export async function middleware(request: NextRequest) {
     }
     supabaseResponse.cookies.set('byg-last-activity', Date.now().toString(), {
       httpOnly: true,
+      secure: true,
       path: '/admin',
       maxAge: SESSION_TIMEOUT_MS / 1000,
       sameSite: 'lax',

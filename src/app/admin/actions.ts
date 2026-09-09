@@ -126,9 +126,11 @@ export async function loginAction(
     await admin.from('perfiles').upsert({
       id: user.id,
       rol: 'empleado',
+      email: user.email,
     }).select().single();
 
-    // Si no hay ningún admin, el primer usuario en loguearse se vuelve admin
+    // Auto-promote atómico: si no hay admin, el primero se vuelve admin
+    // Usamos upsert con condición para evitar race condition
     const { count } = await admin.from('perfiles').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
     if ((count ?? 0) === 0) {
       await admin.from('perfiles').update({ rol: 'admin' }).eq('id', user.id);
@@ -664,32 +666,39 @@ export async function fetchPerfiles(): Promise<PerfilRow[]> {
   const supabase = createAdminClient();
   const { data } = await supabase
     .from('perfiles')
-    .select('id, rol')
+    .select('id, email, rol')
     .order('rol');
-  const profiles = (data ?? []).map((row: Record<string, unknown>) => ({
+  return (data ?? []).map((row: Record<string, unknown>) => ({
     id: row.id as string,
+    email: (row.email as string) ?? '',
     rol: row.rol as string,
   }));
-
-  const enriched = await Promise.all(
-    profiles.map(async (p) => {
-      const { data: { user } } = await supabase.auth.admin.getUserById(p.id);
-      return { ...p, email: user?.email ?? '' };
-    })
-  );
-
-  return enriched;
 }
+
+const roleSchema = z.enum(['admin', 'empleado']);
 
 export async function updateUserRole(
   userId: string,
-  rol: 'admin' | 'empleado'
+  rol: string
 ): Promise<{ error?: string }> {
+  const parsed = roleSchema.safeParse(rol);
+  if (!parsed.success) return { error: 'Rol inválido' };
+
   await requireRole('admin');
   const supabase = createAdminClient();
+
+  // Prevenir que el último admin se demoted
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user && userId === user.id && parsed.data === 'empleado') {
+    const { count } = await supabase.from('perfiles').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
+    if ((count ?? 0) <= 1) {
+      return { error: 'No podés quitarte el rol de admin. Debe haber al menos un administrador.' };
+    }
+  }
+
   const { error } = await supabase
     .from('perfiles')
-    .update({ rol })
+    .update({ rol: parsed.data })
     .eq('id', userId);
   if (error) return { error: error.message };
   return {};

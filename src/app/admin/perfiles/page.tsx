@@ -36,7 +36,6 @@ export default async function PerfilesPage() {
                 </div>
                 <div>
                   <p className="text-white text-sm font-medium">{p.email}</p>
-                  <p className="text-white/30 text-xs">{p.id}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">

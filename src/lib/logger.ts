@@ -23,6 +23,27 @@ export interface LogErrorParams {
   metadata?: Record<string, unknown>;
 }
 
+const SENSITIVE_KEYS = new Set([
+  'password', 'password_hash', 'secret', 'token', 'access_token',
+  'refresh_token', 'authorization', 'auth', 'api_key', 'apikey',
+  'service_role', 'supabase_key', 'credentials', 'private_key',
+]);
+
+function sanitizeMetadata(data: Record<string, unknown>): Record<string, unknown> {
+  const clean: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    const lowerKey = key.toLowerCase();
+    if (SENSITIVE_KEYS.has(lowerKey) || lowerKey.includes('password') || lowerKey.includes('secret') || lowerKey.includes('token') || lowerKey.includes('key')) {
+      clean[key] = '[REDACTED]';
+    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      clean[key] = sanitizeMetadata(value as Record<string, unknown>);
+    } else {
+      clean[key] = value;
+    }
+  }
+  return clean;
+}
+
 /**
  * Registra un error en `error_logs`. Es "best-effort": nunca lanza ni rompe la
  * app. Si el insert falla, cae a `console.error` y sigue.
@@ -38,7 +59,7 @@ export async function logError(params: LogErrorParams): Promise<void> {
       stack: stack ?? null,
       ruta: ruta ?? null,
       usuario_id: usuario_id ?? null,
-      metadata: metadata ?? null,
+      metadata: metadata ? sanitizeMetadata(metadata) : null,
     });
 
     // El insert puede devolver error sin lanzar (ej. columna faltante).
