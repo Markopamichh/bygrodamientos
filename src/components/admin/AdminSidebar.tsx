@@ -152,6 +152,7 @@ export default function AdminSidebar({
 
   const visibleGroups = navGroups.filter((group) => {
     if (group.label === 'Sistema') return userRole === 'admin';
+    if (group.label === 'Catálogo') return userRole === 'admin';
     return true;
   });
 
