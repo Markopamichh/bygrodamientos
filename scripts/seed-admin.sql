@@ -8,7 +8,7 @@
 --   SELECT auth.admin.sign_up('admin@byg.com', 'contraseña123');
 --
 
-INSERT INTO perfiles (id, rol)
+INSERT INTO usuarios (id, rol)
 VALUES (
   (SELECT id FROM auth.users WHERE email = 'admin@byg.com'),
   'admin'
@@ -16,6 +16,6 @@ VALUES (
 ON CONFLICT (id) DO UPDATE SET rol = 'admin';
 
 -- ── Verificar ──────────────────────────────────────────────────────
-SELECT p.id, u.email, p.rol
-FROM perfiles p
-JOIN auth.users u ON u.id = p.id;
+SELECT u.id, au.email, u.rol
+FROM usuarios u
+JOIN auth.users au ON au.id = u.id;

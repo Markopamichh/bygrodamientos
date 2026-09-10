@@ -123,17 +123,16 @@ export async function loginAction(
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     const admin = createAdminClient();
-    await admin.from('perfiles').upsert({
+    await admin.from('usuarios').upsert({
       id: user.id,
       rol: 'empleado',
       email: user.email,
     }).select().single();
 
     // Auto-promote atómico: si no hay admin, el primero se vuelve admin
-    // Usamos upsert con condición para evitar race condition
-    const { count } = await admin.from('perfiles').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
+    const { count } = await admin.from('usuarios').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
     if ((count ?? 0) === 0) {
-      await admin.from('perfiles').update({ rol: 'admin' }).eq('id', user.id);
+      await admin.from('usuarios').update({ rol: 'admin' }).eq('id', user.id);
     }
   }
 
@@ -632,7 +631,7 @@ export async function fetchErrorLogs(): Promise<ErrorLogRow[]> {
       ruta,
       usuario_id,
       metadata,
-      perfiles:usuario_id (email)
+      usuarios:usuario_id (email)
     `)
     .order('created_at', { ascending: false })
     .limit(100);
@@ -646,7 +645,7 @@ export async function fetchErrorLogs(): Promise<ErrorLogRow[]> {
     ruta: (row.ruta as string) ?? null,
     usuario_id: (row.usuario_id as string) ?? null,
     metadata: (row.metadata as Record<string, unknown>) ?? null,
-    perfil_email: (row.perfiles as Record<string, unknown>)?.email as string | null ?? null,
+    perfil_email: (row.usuarios as Record<string, unknown>)?.email as string | null ?? null,
   }));
 
   return rows;
@@ -664,13 +663,31 @@ export type PerfilRow = {
 export async function fetchPerfiles(): Promise<PerfilRow[]> {
   await requireRole('admin');
   const supabase = createAdminClient();
-  const { data } = await supabase
-    .from('perfiles')
+
+  // Primero intentamos con email (columna de la migración)
+  const { data, error } = await supabase
+    .from('usuarios')
     .select('id, email, rol')
     .order('rol');
-  return (data ?? []).map((row: Record<string, unknown>) => ({
+
+  if (!error && data) {
+    return data.map((row: Record<string, unknown>) => ({
+      id: row.id as string,
+      email: (row.email as string) ?? '',
+      rol: row.rol as string,
+    }));
+  }
+
+  // Si falló (probablemente falta la columna email), intentamos sin ella
+  console.warn('fetchPerfiles: fallback sin columna email:', error?.message);
+  const { data: fallback } = await supabase
+    .from('usuarios')
+    .select('id, rol')
+    .order('rol');
+
+  return (fallback ?? []).map((row: Record<string, unknown>) => ({
     id: row.id as string,
-    email: (row.email as string) ?? '',
+    email: '',
     rol: row.rol as string,
   }));
 }
@@ -690,14 +707,14 @@ export async function updateUserRole(
   // Prevenir que el último admin se demoted
   const { data: { user } } = await supabase.auth.getUser();
   if (user && userId === user.id && parsed.data === 'empleado') {
-    const { count } = await supabase.from('perfiles').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
+    const { count } = await supabase.from('usuarios').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
     if ((count ?? 0) <= 1) {
       return { error: 'No podés quitarte el rol de admin. Debe haber al menos un administrador.' };
     }
   }
 
   const { error } = await supabase
-    .from('perfiles')
+    .from('usuarios')
     .update({ rol: parsed.data })
     .eq('id', userId);
   if (error) return { error: error.message };

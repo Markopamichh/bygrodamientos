@@ -54,7 +54,7 @@ export async function getUserRole(): Promise<'admin' | 'empleado' | null> {
     if (!user) return null;
 
     const { data } = await createAdminClient()
-      .from('perfiles')
+      .from('usuarios')
       .select('rol')
       .eq('id', user.id)
       .single();
