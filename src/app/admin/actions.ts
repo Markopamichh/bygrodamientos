@@ -119,20 +119,31 @@ export async function loginAction(
     };
   }
 
-  // Auto-crear o actualizar el perfil con rol 'empleado' por defecto
+  // Auto-crear perfil si no existe (sin sobreescribir rol existente)
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     const admin = createAdminClient();
-    await admin.from('usuarios').upsert({
-      id: user.id,
-      rol: 'empleado',
-      email: user.email,
-    }).select().single();
 
-    // Auto-promote atómico: si no hay admin, el primero se vuelve admin
-    const { count } = await admin.from('usuarios').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
-    if ((count ?? 0) === 0) {
-      await admin.from('usuarios').update({ rol: 'admin' }).eq('id', user.id);
+    // Verificar si ya tiene perfil
+    const { data: existing } = await admin
+      .from('usuarios')
+      .select('rol')
+      .eq('id', user.id)
+      .single();
+
+    if (!existing) {
+      // Solo crear si no existe, con rol 'empleado' por defecto
+      await admin.from('usuarios').upsert({
+        id: user.id,
+        rol: 'empleado',
+        email: user.email,
+      }).select().single();
+
+      // Auto-promote: si no hay admin, el primero se vuelve admin
+      const { count } = await admin.from('usuarios').select('*', { count: 'exact', head: true }).eq('rol', 'admin');
+      if ((count ?? 0) === 0) {
+        await admin.from('usuarios').update({ rol: 'admin' }).eq('id', user.id);
+      }
     }
   }
 
